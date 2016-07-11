@@ -15,3 +15,6 @@ test/YAMLParser/spec-09-02.test binary
 
 # Windows line ending test
 test/MC/AsmParser/preserve-comments-crlf.s text eol=crlf
+
+# Disable precommit check
+* no-precommit-check
