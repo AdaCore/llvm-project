@@ -460,14 +460,14 @@ enum class AccessMode { Exist, Write, Execute };
 /// @param Path Input path.
 /// @returns errc::success if the path can be accessed, otherwise a
 ///          platform-specific error_code.
-std::error_code access(const Twine &Path, AccessMode Mode);
+std::error_code LLVMaccess(const Twine &Path, AccessMode Mode);
 
 /// Does file exist?
 ///
 /// @param Path Input path.
 /// @returns True if it exists, false otherwise.
 inline bool exists(const Twine &Path) {
-  return !access(Path, AccessMode::Exist);
+  return !LLVMaccess(Path, AccessMode::Exist);
 }
 
 /// Can we execute this file?
@@ -481,7 +481,7 @@ bool can_execute(const Twine &Path);
 /// @param Path Input path.
 /// @returns True if we can write to it, false otherwise.
 inline bool can_write(const Twine &Path) {
-  return !access(Path, AccessMode::Write);
+  return !LLVMaccess(Path, AccessMode::Write);
 }
 
 /// Do file_status's represent the same thing?

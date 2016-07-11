@@ -220,7 +220,7 @@ createUniqueEntity(const Twine &Model, int &ResultFD,
     }
 
     case FS_Name: {
-      EC = sys::fs::access(ResultPath.begin(), sys::fs::AccessMode::Exist);
+      EC = sys::fs::LLVMaccess(ResultPath.begin(), sys::fs::AccessMode::Exist);
       if (EC == errc::no_such_file_or_directory)
         return std::error_code();
       if (EC)

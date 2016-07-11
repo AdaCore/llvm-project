@@ -316,7 +316,7 @@ LockFileManager::WaitForUnlockResult LockFileManager::waitForUnlock() {
     nanosleep(&Interval, nullptr);
 #endif
 
-    if (sys::fs::access(LockFileName.c_str(), sys::fs::AccessMode::Exist) ==
+    if (sys::fs::LLVMaccess(LockFileName.c_str(), sys::fs::AccessMode::Exist) ==
         errc::no_such_file_or_directory) {
       // If the original file wasn't created, somone thought the lock was dead.
       if (!sys::fs::exists(FileName))

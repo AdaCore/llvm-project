@@ -630,7 +630,7 @@ TEST_F(FileSystemTest, TempFiles) {
   EXPECT_EQ(B.type(), fs::file_type::file_not_found);
 
   // Make sure Temp2 doesn't exist.
-  ASSERT_EQ(fs::access(Twine(TempPath2), sys::fs::AccessMode::Exist),
+  ASSERT_EQ(fs::LLVMaccess(Twine(TempPath2), sys::fs::AccessMode::Exist),
             errc::no_such_file_or_directory);
 
   SmallString<64> TempPath3;
@@ -655,7 +655,7 @@ TEST_F(FileSystemTest, TempFiles) {
   ASSERT_NO_ERROR(fs::remove(Twine(TempPath2)));
 
   // Make sure Temp1 doesn't exist.
-  ASSERT_EQ(fs::access(Twine(TempPath), sys::fs::AccessMode::Exist),
+  ASSERT_EQ(fs::LLVMaccess(Twine(TempPath), sys::fs::AccessMode::Exist),
             errc::no_such_file_or_directory);
 
 #ifdef _WIN32

@@ -74,7 +74,7 @@ TEST(FileOutputBuffer, Test) {
     // Do *not* commit buffer.
   }
   // Verify file does not exist (because buffer not committed).
-  ASSERT_EQ(fs::access(Twine(File2), fs::AccessMode::Exist),
+  ASSERT_EQ(fs::LLVMaccess(Twine(File2), fs::AccessMode::Exist),
             errc::no_such_file_or_directory);
   ASSERT_NO_ERROR(fs::remove(File2.str()));
 

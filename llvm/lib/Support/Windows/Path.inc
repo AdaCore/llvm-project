@@ -564,7 +564,7 @@ std::error_code resize_file(int FD, uint64_t Size) {
   return std::error_code(error, std::generic_category());
 }
 
-std::error_code access(const Twine &Path, AccessMode Mode) {
+std::error_code LLVMaccess(const Twine &Path, AccessMode Mode) {
   SmallVector<wchar_t, 128> PathUtf16;
 
   if (std::error_code EC = widenPath(Path, PathUtf16))
@@ -588,8 +588,8 @@ std::error_code access(const Twine &Path, AccessMode Mode) {
 }
 
 bool can_execute(const Twine &Path) {
-  return !access(Path, AccessMode::Execute) ||
-         !access(Path + ".exe", AccessMode::Execute);
+  return !LLVMaccess(Path, AccessMode::Execute) ||
+         !LLVMaccess(Path + ".exe", AccessMode::Execute);
 }
 
 bool equivalent(file_status A, file_status B) {

@@ -471,7 +471,7 @@ static int convertAccessMode(AccessMode Mode) {
   llvm_unreachable("invalid enum");
 }
 
-std::error_code access(const Twine &Path, AccessMode Mode) {
+std::error_code LLVMaccess(const Twine &Path, AccessMode Mode) {
   SmallString<128> PathStorage;
   StringRef P = Path.toNullTerminatedStringRef(PathStorage);
 
@@ -491,7 +491,7 @@ std::error_code access(const Twine &Path, AccessMode Mode) {
 }
 
 bool can_execute(const Twine &Path) {
-  return !access(Path, AccessMode::Execute);
+  return !LLVMaccess(Path, AccessMode::Execute);
 }
 
 bool equivalent(file_status A, file_status B) {
