@@ -1,0 +1,6 @@
+[gerrit]
+host = git.adacore.com
+project = llvm
+defaultbranch = release_60
+defaultremote = origin
+
