@@ -312,6 +312,11 @@ static bool shouldUseMmap(int FD,
                           bool RequiresNullTerminator,
                           int PageSize,
                           bool IsVolatile) {
+
+  // deactivate mmap altogether: this presents some issues in some versions of
+  // Windows
+  return false;
+
   // mmap may leave the buffer without null terminator if the file size changed
   // by the time the last page is mapped in, so avoid it if the file size is
   // likely to change.
