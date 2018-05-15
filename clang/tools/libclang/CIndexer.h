@@ -37,6 +37,7 @@ class CIndexer {
   bool OnlyLocalDecls;
   bool DisplayDiagnostics;
   unsigned Options; // CXGlobalOptFlags.
+  llvm::sys::Mutex Mux;
 
   std::string ResourcesPath;
   std::shared_ptr<PCHContainerOperations> PCHContainerOps;
@@ -48,7 +49,7 @@ class CIndexer {
 public:
   CIndexer(std::shared_ptr<PCHContainerOperations> PCHContainerOps =
                std::make_shared<PCHContainerOperations>())
-      : OnlyLocalDecls(false), DisplayDiagnostics(false),
+      : OnlyLocalDecls(false), DisplayDiagnostics(false), Mux(false),
         Options(CXGlobalOpt_None), PCHContainerOps(std::move(PCHContainerOps)) {
   }
 

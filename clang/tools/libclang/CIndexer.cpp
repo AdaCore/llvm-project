@@ -39,6 +39,9 @@
 using namespace clang;
 
 const std::string &CIndexer::getClangResourcesPath() {
+  // Protect the clang get ressources path logic with a mutex.
+  llvm::MutexGuard MG(Mux);
+
   // Did we already compute the path?
   if (!ResourcesPath.empty())
     return ResourcesPath;
