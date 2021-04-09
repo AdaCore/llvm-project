@@ -388,6 +388,17 @@ if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
     PATTERN "config.h" EXCLUDE
     )
 
+  if(LIBCLANG_FULL)
+    install(DIRECTORY tools/libclang
+      DESTINATION include
+      COMPONENT clang-headers
+      FILES_MATCHING
+      PATTERN "*.def"
+      PATTERN "*.h"
+      PATTERN "config.h" EXCLUDE
+      )
+  endif()
+
   install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/clang
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
     COMPONENT clang-headers
