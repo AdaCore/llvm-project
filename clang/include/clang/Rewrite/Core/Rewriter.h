@@ -140,17 +140,20 @@ public:
 
   /// RemoveText - Remove the specified text region.
   bool RemoveText(SourceLocation Start, unsigned Length,
-                  RewriteOptions opts = RewriteOptions());
+                  RewriteOptions opts = RewriteOptions(),
+                  bool AfterInserts = true);
 
   /// Remove the specified text region.
   bool RemoveText(CharSourceRange range,
                   RewriteOptions opts = RewriteOptions()) {
-    return RemoveText(range.getBegin(), getRangeSize(range, opts), opts);
+    return RemoveText(range.getBegin(), getRangeSize(range, opts), opts,
+                      !opts.IncludeInsertsAtBeginOfRange);
   }
 
   /// Remove the specified text region.
   bool RemoveText(SourceRange range, RewriteOptions opts = RewriteOptions()) {
-    return RemoveText(range.getBegin(), getRangeSize(range, opts), opts);
+    return RemoveText(range.getBegin(), getRangeSize(range, opts), opts,
+                      !opts.IncludeInsertsAtBeginOfRange);
   }
 
   /// ReplaceText - This method replaces a range of characters in the input
