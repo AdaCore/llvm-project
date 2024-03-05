@@ -6,6 +6,7 @@ set(files
     unwind_arm_ehabi.h
     unwind_itanium.h
     unwind.h
+    unwind-pe.h
     )
 
 add_library(unwind-headers INTERFACE)
