@@ -55,6 +55,14 @@ typedef enum {
 
 typedef struct _Unwind_Context _Unwind_Context;   // opaque
 
+typedef uintptr_t _Unwind_Word __attribute__((__mode__(__unwind_word__)));
+typedef intptr_t _Unwind_Sword __attribute__((__mode__(__unwind_word__)));
+typedef uintptr_t _Unwind_Ptr;
+typedef uintptr_t _Unwind_Internal_Ptr;
+
+typedef intptr_t _sleb128_t;
+typedef uintptr_t _uleb128_t;
+
 #if defined(_LIBUNWIND_ARM_EHABI)
 #include <unwind_arm_ehabi.h>
 #else

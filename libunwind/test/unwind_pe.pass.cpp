@@ -14,7 +14,7 @@ int main() {
   struct {
     uint8_t Encoding;
     ptrdiff_t Length;
-    uintptr_t Result;
+    _Unwind_Ptr Result;
   } Tests[] = {{DW_EH_PE_absptr, sizeof(void *), 0x0706050403020100},
                {DW_EH_PE_udata2, 2, 0x0100},
                {DW_EH_PE_udata4, 4, 0x03020100},
@@ -37,7 +37,7 @@ int main() {
   {
     // ULEB128 example from Figure 22 of the DWARF4 stardard
     const uint8_t ULEB128Data[] = {57 + 0x80, 100};
-    uint64_t Result = 0xaa;
+    _uleb128_t Result = 0xaa;
     const auto *NewData = read_uleb128(ULEB128Data, &Result);
     if (NewData - ULEB128Data != 2 || Result != 12857)
       return 3;
@@ -46,7 +46,7 @@ int main() {
   {
     // SLEB128 example from Figure 23 of the DWARF4 stardard
     const uint8_t SLEB128Data[] = {0x7f + 0x80, 0x7e};
-    int64_t Result = 0xaa;
+    _sleb128_t Result = 0xaa;
     const auto *NewData = read_sleb128(SLEB128Data, &Result);
     if (NewData - SLEB128Data != 2 || Result != -129)
       return 4;
