@@ -17,21 +17,22 @@
 
 using libunwind::LocalAddressSpace;
 
-const uint8_t *__read_uleb128(const uint8_t *Data, uint64_t *Result) {
+const uint8_t *__read_uleb128(const uint8_t *Data, _uleb128_t *Result) {
   auto Addr = reinterpret_cast<uintptr_t>(Data);
   *Result = LocalAddressSpace::getULEB128(Addr, 0);
   return reinterpret_cast<uint8_t *>(Addr);
 }
 
-const uint8_t *__read_sleb128(const uint8_t *Data, int64_t *Result) {
+const uint8_t *__read_sleb128(const uint8_t *Data, _sleb128_t *Result) {
   auto Addr = reinterpret_cast<uintptr_t>(Data);
   *Result = LocalAddressSpace::getSLEB128(Addr, 0);
   return reinterpret_cast<uint8_t *>(Addr);
 }
 
-const uint8_t *__read_encoded_value_with_base(uint8_t Encoding, uintptr_t Base,
+const uint8_t *__read_encoded_value_with_base(uint8_t Encoding,
+                                              _Unwind_Ptr Base,
                                               const uint8_t *Data,
-                                              uintptr_t *Result) {
+                                              _Unwind_Ptr *Result) {
   LocalAddressSpace AS;
   auto Addr = reinterpret_cast<uintptr_t>(Data);
   *Result = AS.getEncodedP(Addr, 0, Encoding, Base);

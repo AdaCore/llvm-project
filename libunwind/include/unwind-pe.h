@@ -51,11 +51,12 @@ extern "C" {
 // Internal implementation
 //
 
-const uint8_t *__read_uleb128(const uint8_t *Data, uint64_t *Result);
-const uint8_t *__read_sleb128(const uint8_t *Data, int64_t *Result);
-const uint8_t *__read_encoded_value_with_base(uint8_t Encoding, uintptr_t Base,
+const uint8_t *__read_uleb128(const uint8_t *Data, _uleb128_t *Result);
+const uint8_t *__read_sleb128(const uint8_t *Data, _sleb128_t *Result);
+const uint8_t *__read_encoded_value_with_base(uint8_t Encoding,
+                                              _Unwind_Ptr Base,
                                               const uint8_t *Data,
-                                              uintptr_t *Result);
+                                              _Unwind_Ptr *Result);
 unsigned int __size_of_encoded_value(uint8_t Encoding);
 
 //
@@ -67,13 +68,15 @@ static inline unsigned int size_of_encoded_value(uint8_t encoding) {
 }
 
 static const uint8_t *read_encoded_value_with_base(uint8_t encoding,
-                                                   uintptr_t base,
+                                                   _Unwind_Ptr base,
                                                    const uint8_t *p,
-                                                   uintptr_t *val) {
+                                                   _Unwind_Ptr *val) {
   return __read_encoded_value_with_base(encoding, base, p, val);
 }
 
-static uintptr_t base_of_encoded_value(uint8_t, struct _Unwind_Context *) {
+static uintptr_t base_of_encoded_value(uint8_t encoding __attribute__((unused)),
+                                       struct _Unwind_Context *context
+                                       __attribute__((unused))) {
   // Not actually supported; read_encoded_value_with_base will abort if the
   // base is needed but 0.
   return 0;
@@ -82,16 +85,16 @@ static uintptr_t base_of_encoded_value(uint8_t, struct _Unwind_Context *) {
 static inline const uint8_t *read_encoded_value(struct _Unwind_Context *context,
                                                 uint8_t encoding,
                                                 const uint8_t *p,
-                                                uintptr_t *val) {
+                                                _Unwind_Ptr *val) {
   return read_encoded_value_with_base(
       encoding, base_of_encoded_value(encoding, context), p, val);
 }
 
-static inline const uint8_t *read_uleb128(const uint8_t *p, uint64_t *val) {
+static inline const uint8_t *read_uleb128(const uint8_t *p, _uleb128_t *val) {
   return __read_uleb128(p, val);
 }
 
-static inline const uint8_t *read_sleb128(const uint8_t *p, int64_t *val) {
+static inline const uint8_t *read_sleb128(const uint8_t *p, _sleb128_t *val) {
   return __read_sleb128(p, val);
 }
 
