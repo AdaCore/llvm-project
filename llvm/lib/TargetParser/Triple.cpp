@@ -281,6 +281,8 @@ StringRef Triple::getOSTypeName(OSType Kind) {
   case KFreeBSD: return "kfreebsd";
   case Linux: return "linux";
   case Lv2: return "lv2";
+  case Lynxos178:
+    return "lynxos178";
   case MacOSX: return "macosx";
   case Mesa3D: return "mesa3d";
   case NVCL: return "nvcl";
@@ -687,6 +689,7 @@ static Triple::OSType parseOS(StringRef OSName) {
     .StartsWith("liteos", Triple::LiteOS)
     .StartsWith("serenity", Triple::Serenity)
     .StartsWith("vulkan", Triple::Vulkan)
+    .StartsWith("lynxos178", Triple::Lynxos178)
     .Default(Triple::UnknownOS);
 }
 
