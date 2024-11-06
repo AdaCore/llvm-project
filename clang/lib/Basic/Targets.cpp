@@ -373,6 +373,8 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
       return std::make_unique<OpenBSDTargetInfo<PPC32TargetInfo>>(Triple, Opts);
     case llvm::Triple::RTEMS:
       return std::make_unique<RTEMSTargetInfo<PPC32TargetInfo>>(Triple, Opts);
+    case llvm::Triple::Lynxos178:
+      return std::make_unique<Lynxos178TargetInfo<PPC32TargetInfo>>(Triple, Opts);
     case llvm::Triple::AIX:
       return std::make_unique<AIXPPC32TargetInfo>(Triple, Opts);
     default:

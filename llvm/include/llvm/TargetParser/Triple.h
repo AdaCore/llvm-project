@@ -222,6 +222,7 @@ public:
     RTEMS,
     NaCl, // Native Client
     AIX,
+    Lynxos178,
     CUDA,   // NVIDIA CUDA
     NVCL,   // NVIDIA OpenCL
     AMDHSA, // AMD HSA Runtime
@@ -757,8 +758,9 @@ public:
   }
 
   /// Tests whether the OS is AIX.
+  /// Considered ppc-lynx178 as AIX for now.
   bool isOSAIX() const {
-    return getOS() == Triple::AIX;
+    return getOS() == Triple::AIX || (isPPC() && getOS() == Triple::Lynxos178);
   }
 
   bool isOSSerenity() const {
