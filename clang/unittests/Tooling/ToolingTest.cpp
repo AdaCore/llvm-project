@@ -10,6 +10,7 @@
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/DeclCXX.h"
 #include "clang/AST/DeclGroup.h"
+#include "clang/Config/config.h"
 #include "clang/Driver/Compilation.h"
 #include "clang/Driver/Driver.h"
 #include "clang/Frontend/ASTUnit.h"
@@ -888,9 +889,12 @@ TEST(addTargetAndModeForProgramName, AddsTargetAndMode) {
   addTargetAndModeForProgramName(Args, "");
   EXPECT_EQ((std::vector<std::string>{"clang", "-foo"}), Args);
   addTargetAndModeForProgramName(Args, Target + "-g++");
-  EXPECT_EQ((std::vector<std::string>{"clang", "--target=" + Target,
-                                      "--driver-mode=g++", "-foo"}),
-            Args);
+  EXPECT_EQ(
+      (CLANG_GET_TARGET_FROM_PROGRAM_NAME
+           ? std::vector<std::string>{"clang", "--target=" + Target,
+                                      "--driver-mode=g++", "-foo"}
+           : std::vector<std::string>{"clang", "--driver-mode=g++", "-foo"}),
+      Args);
 }
 
 TEST(addTargetAndModeForProgramName, PathIgnored) {
@@ -903,9 +907,12 @@ TEST(addTargetAndModeForProgramName, PathIgnored) {
 
   std::vector<std::string> Args = {"clang", "-foo"};
   addTargetAndModeForProgramName(Args, ToolPath);
-  EXPECT_EQ((std::vector<std::string>{"clang", "--target=" + Target,
-                                      "--driver-mode=g++", "-foo"}),
-            Args);
+  EXPECT_EQ(
+      (CLANG_GET_TARGET_FROM_PROGRAM_NAME
+           ? std::vector<std::string>{"clang", "--target=" + Target,
+                                      "--driver-mode=g++", "-foo"}
+           : std::vector<std::string>{"clang", "--driver-mode=g++", "-foo"}),
+      Args);
 }
 
 TEST(addTargetAndModeForProgramName, IgnoresExistingTarget) {
@@ -933,9 +940,12 @@ TEST(addTargetAndModeForProgramName, IgnoresExistingMode) {
 
   std::vector<std::string> Args = {"clang", "-foo", "--driver-mode=abc"};
   addTargetAndModeForProgramName(Args, Target + "-g++");
-  EXPECT_EQ((std::vector<std::string>{"clang", "--target=" + Target, "-foo",
-                                      "--driver-mode=abc"}),
-            Args);
+  EXPECT_EQ(
+      (CLANG_GET_TARGET_FROM_PROGRAM_NAME
+           ? std::vector<std::string>{"clang", "--target=" + Target, "-foo",
+                                      "--driver-mode=abc"}
+           : std::vector<std::string>{"clang", "-foo", "--driver-mode=abc"}),
+      Args);
 }
 
 #ifndef _WIN32

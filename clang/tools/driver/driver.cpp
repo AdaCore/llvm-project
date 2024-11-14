@@ -101,7 +101,7 @@ static void insertTargetAndModeArgs(const ParsedClangName &NameParts,
                      GetStableCStr(SavedStrings, NameParts.DriverMode));
   }
 
-  if (NameParts.TargetIsValid) {
+  if (NameParts.TargetIsValid && CLANG_GET_TARGET_FROM_PROGRAM_NAME) {
     const char *arr[] = {"-target", GetStableCStr(SavedStrings,
                                                   NameParts.TargetPrefix)};
     ArgVector.insert(ArgVector.begin() + InsertionPoint,

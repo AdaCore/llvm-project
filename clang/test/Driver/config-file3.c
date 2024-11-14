@@ -1,5 +1,6 @@
 // REQUIRES: shell
 // REQUIRES: x86-registered-target
+// REQUIRES: get-target-from-program-name
 
 // RUN: unset CLANG_NO_DEFAULT_CONFIG
 // RUN: rm -rf %t && mkdir %t

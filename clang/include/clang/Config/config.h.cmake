@@ -32,6 +32,9 @@
 /* Default architecture for SystemZ. */
 #define CLANG_SYSTEMZ_DEFAULT_ARCH "${CLANG_SYSTEMZ_DEFAULT_ARCH}"
 
+/* Derive the target from the program name. */
+#cmakedefine01 CLANG_GET_TARGET_FROM_PROGRAM_NAME
+
 /* Multilib basename for libdir. */
 #define CLANG_INSTALL_LIBDIR_BASENAME "${CLANG_INSTALL_LIBDIR_BASENAME}"
 

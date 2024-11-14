@@ -299,6 +299,8 @@ if (NOT LLVM_LINK_LLVM_DYLIB AND CLANG_LINK_CLANG_DYLIB)
                       "LLVM_LINK_LLVM_DYLIB=OFF")
 endif()
 
+option(CLANG_GET_TARGET_FROM_PROGRAM_NAME "Derive the target from the program name" ON)
+
 # The libdir suffix must exactly match whatever LLVM's configuration used.
 set(CLANG_LIBDIR_SUFFIX "${LLVM_LIBDIR_SUFFIX}")
 
