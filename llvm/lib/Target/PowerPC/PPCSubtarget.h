@@ -215,6 +215,7 @@ public:
   bool isTargetELF() const { return TargetTriple.isOSBinFormatELF(); }
   bool isTargetMachO() const { return TargetTriple.isOSBinFormatMachO(); }
   bool isTargetLinux() const { return TargetTriple.isOSLinux(); }
+  bool isTargetLynx178() const { return TargetTriple.isOSLynx178(); }
 
   bool isAIXABI() const { return TargetTriple.isOSAIX(); }
   bool isSVR4ABI() const { return !isAIXABI(); }

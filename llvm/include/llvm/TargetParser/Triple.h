@@ -757,6 +757,11 @@ public:
            !isAndroid();
   }
 
+  /// Tests whether the OS is Lynx178.
+  bool isOSLynx178() const {
+    return getOS() == Triple::Lynxos178;
+  }
+
   /// Tests whether the OS is AIX.
   /// Considered ppc-lynx178 as AIX for now.
   bool isOSAIX() const {
