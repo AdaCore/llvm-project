@@ -317,6 +317,7 @@ public:
     Haiku,
     RTEMS,
     AIX,
+    VxWorks7r2,
     CUDA,   // NVIDIA CUDA
     NVCL,   // NVIDIA OpenCL
     AMDHSA, // AMD HSA Runtime
@@ -858,6 +859,9 @@ public:
 
   /// Tests whether the OS is H2.
   bool isOSH2() const { return getOS() == Triple::H2; }
+
+  /// Tests whether the OS is VxWorks7r2.
+  bool isOSVxWorks7r2() const { return getOS() == Triple::VxWorks7r2; }
 
   /// Tests whether the OS uses the ELF binary format.
   bool isOSBinFormatELF() const { return getObjectFormat() == Triple::ELF; }
