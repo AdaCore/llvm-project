@@ -234,7 +234,8 @@ void BareMetal::findMultilibs(const Driver &D, const llvm::Triple &Triple,
 
 bool BareMetal::handlesTarget(const llvm::Triple &Triple) {
   return isARMBareMetal(Triple) || isAArch64BareMetal(Triple) ||
-         isRISCVBareMetal(Triple) || isPPCBareMetal(Triple);
+         isRISCVBareMetal(Triple) || isPPCBareMetal(Triple) ||
+         Triple.isOSVxWorks7r2();
 }
 
 Tool *BareMetal::buildLinker() const {

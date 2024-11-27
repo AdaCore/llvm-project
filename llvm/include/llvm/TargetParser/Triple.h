@@ -219,6 +219,7 @@ public:
     NaCl, // Native Client
     AIX,
     Lynxos178,
+    VxWorks7r2,
     CUDA,   // NVIDIA CUDA
     NVCL,   // NVIDIA OpenCL
     AMDHSA, // AMD HSA Runtime
@@ -723,6 +724,11 @@ public:
   /// Considered ppc-lynx178 as AIX for now.
   bool isOSAIX() const {
     return getOS() == Triple::AIX || (isPPC() && getOS() == Triple::Lynxos178);
+  }
+
+  /// Tests whether the OS is VxWorks7r2.
+  bool isOSVxWorks7r2() const {
+    return getOS() == Triple::VxWorks7r2;
   }
 
   bool isOSSerenity() const {
