@@ -2183,6 +2183,10 @@ static void AddUnwindLibrary(const ToolChain &TC, const Driver &D,
         CmdArgs.push_back("-lunwind");
     } else if (LGT == LibGccType::StaticLibGcc) {
       CmdArgs.push_back("-l:libunwind.a");
+      // libunwind on 32bit MinGW depends on libpsapi, let's add it here
+      if (TC.getTriple().isOSCygMing() &&
+          TC.getTriple().getArch() == llvm::Triple::x86)
+          CmdArgs.push_back("-lpsapi");
     } else if (LGT == LibGccType::SharedLibGcc) {
       if (TC.getTriple().isOSCygMing())
         CmdArgs.push_back("-l:libunwind.dll.a");

@@ -234,7 +234,8 @@ void BareMetal::findMultilibs(const Driver &D, const llvm::Triple &Triple,
 
 bool BareMetal::handlesTarget(const llvm::Triple &Triple) {
   return isARMBareMetal(Triple) || isAArch64BareMetal(Triple) ||
-         isRISCVBareMetal(Triple) || isPPCBareMetal(Triple);
+         isRISCVBareMetal(Triple) || isPPCBareMetal(Triple) ||
+         Triple.isOSVxWorks7r2();
 }
 
 Tool *BareMetal::buildLinker() const {
@@ -498,10 +499,13 @@ void baremetal::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   if (TC.ShouldLinkCXXStdlib(Args))
     TC.AddCXXStdlibLibArgs(Args, CmdArgs);
 
-  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs)) {
+  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
+                   options::OPT_nolibc)) {
     CmdArgs.push_back("-lc");
     CmdArgs.push_back("-lm");
+  }
 
+  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs)) {
     TC.AddLinkRuntimeLib(Args, CmdArgs);
   }
 

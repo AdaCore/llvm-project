@@ -30,6 +30,7 @@
 #include "ToolChains/Hurd.h"
 #include "ToolChains/Lanai.h"
 #include "ToolChains/Linux.h"
+#include "ToolChains/LynxXcoff.h"
 #include "ToolChains/MSP430.h"
 #include "ToolChains/MSVC.h"
 #include "ToolChains/MinGW.h"
@@ -6347,6 +6348,12 @@ const ToolChain &Driver::getToolChain(const ArgList &Args,
     switch (Target.getOS()) {
     case llvm::Triple::AIX:
       TC = std::make_unique<toolchains::AIX>(*this, Target, Args);
+      break;
+    case llvm::Triple::Lynxos178:
+      if (Target.isPPC())
+        TC = std::make_unique<toolchains::LynxXcoff>(*this, Target, Args);
+      else
+        TC = std::make_unique<toolchains::Generic_GCC>(*this, Target, Args);
       break;
     case llvm::Triple::Haiku:
       TC = std::make_unique<toolchains::Haiku>(*this, Target, Args);

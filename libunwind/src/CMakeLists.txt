@@ -4,6 +4,7 @@ set(LIBUNWIND_CXX_SOURCES
     libunwind.cpp
     Unwind-EHABI.cpp
     Unwind-seh.cpp
+    Unwind-pe.cpp
     )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "AIX")
@@ -47,6 +48,7 @@ set(LIBUNWIND_HEADERS
     ../include/unwind.h
     ../include/unwind_itanium.h
     ../include/unwind_arm_ehabi.h
+    ../include/unwind-pe.h
     )
 if(APPLE)
   list(APPEND LIBUNWIND_HEADERS

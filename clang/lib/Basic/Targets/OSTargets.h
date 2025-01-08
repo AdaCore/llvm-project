@@ -373,6 +373,19 @@ public:
   }
 };
 
+// LynxOS 178 Target
+template <typename Target>
+class LLVM_LIBRARY_VISIBILITY Lynxos178TargetInfo : public OSTargetInfo<Target> {
+ protected:
+  void getOSDefines(const LangOptions &Opts, const llvm::Triple &Triple,
+                    MacroBuilder &Builder) const override {
+    DefineStd(Builder, "unix", Opts);
+    Builder.defineMacro("__Lynx__");
+  }
+public:
+  using OSTargetInfo<Target>::OSTargetInfo;
+};
+
 // NetBSD Target
 template <typename Target>
 class LLVM_LIBRARY_VISIBILITY NetBSDTargetInfo : public OSTargetInfo<Target> {

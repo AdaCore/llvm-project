@@ -299,6 +299,8 @@ if (NOT LLVM_LINK_LLVM_DYLIB AND CLANG_LINK_CLANG_DYLIB)
                       "LLVM_LINK_LLVM_DYLIB=OFF")
 endif()
 
+option(CLANG_GET_TARGET_FROM_PROGRAM_NAME "Derive the target from the program name" ON)
+
 # The libdir suffix must exactly match whatever LLVM's configuration used.
 set(CLANG_LIBDIR_SUFFIX "${LLVM_LIBDIR_SUFFIX}")
 
@@ -381,6 +383,17 @@ if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
     PATTERN "*.h"
     PATTERN "config.h" EXCLUDE
     )
+
+  if(LIBCLANG_FULL)
+    install(DIRECTORY tools/libclang
+      DESTINATION include
+      COMPONENT clang-headers
+      FILES_MATCHING
+      PATTERN "*.def"
+      PATTERN "*.h"
+      PATTERN "config.h" EXCLUDE
+      )
+  endif()
 
   install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/clang
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"

@@ -18,6 +18,7 @@
 #include "clang/Basic/FileManager.h"
 #include "clang/Basic/FileSystemOptions.h"
 #include "clang/Basic/LLVM.h"
+#include "clang/Config/config.h"
 #include "clang/Driver/Compilation.h"
 #include "clang/Driver/Driver.h"
 #include "clang/Driver/Job.h"
@@ -286,7 +287,8 @@ void addTargetAndModeForProgramName(std::vector<std::string> &CommandLine,
   auto TargetMode =
       driver::ToolChain::getTargetAndModeFromProgramName(InvokedAs);
   // No need to search for target args if we don't have a target/mode to insert.
-  bool ShouldAddTarget = TargetMode.TargetIsValid;
+  bool ShouldAddTarget =
+      TargetMode.TargetIsValid && CLANG_GET_TARGET_FROM_PROGRAM_NAME;
   bool ShouldAddMode = TargetMode.DriverMode != nullptr;
   // Skip CommandLine[0].
   for (auto Token = ++CommandLine.begin(); Token != CommandLine.end();
