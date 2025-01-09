@@ -171,6 +171,7 @@ enum {
   LLVMDIEnumeratorMetadataKind,
   LLVMDIBasicTypeMetadataKind,
   LLVMDIDerivedTypeMetadataKind,
+  LLVMDISubrangeTypeMetadataKind,
   LLVMDICompositeTypeMetadataKind,
   LLVMDISubroutineTypeMetadataKind,
   LLVMDIFileMetadataKind,

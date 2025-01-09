@@ -1600,6 +1600,24 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     NextMetadataNo++;
     break;
   }
+  case bitc::METADATA_SUBRANGE_TYPE: {
+    if (Record.size() != 12)
+      return error("Invalid record");
+
+    IsDistinct = Record[0];
+    DINode::DIFlags Flags = static_cast<DINode::DIFlags>(Record[10]);
+    MetadataList.assignValue(
+        GET_OR_DISTINCT(DISubrangeType,
+                        (Context, getMDString(Record[1]),
+                         getMDOrNull(Record[2]), Record[3],
+                         getMDOrNull(Record[4]), Record[5], Record[6], Flags,
+                         getDITypeRefOrNull(Record[8]), getMDOrNull(Record[9]),
+                         getMDOrNull(Record[10]), getMDOrNull(Record[11]),
+                         getMDOrNull(Record[12]))),
+        NextMetadataNo);
+    NextMetadataNo++;
+    break;
+  }
   case bitc::METADATA_COMPOSITE_TYPE: {
     if (Record.size() < 16 || Record.size() > 22)
       return error("Invalid record");
