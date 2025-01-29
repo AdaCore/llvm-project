@@ -615,7 +615,9 @@ DIE *DwarfUnit::createTypeDIE(const DIScope *Context, DIE &ContextDIE,
       return &TyDIE;
     }
     construct(CTy);
-  } else if (auto *BT = dyn_cast<DIBasicType>(Ty))
+  } else if (auto *FPT = dyn_cast<DIFixedPointType>(Ty))
+    construct(FPT);
+  else if (auto *BT = dyn_cast<DIBasicType>(Ty))
     construct(BT);
   else if (auto *ST = dyn_cast<DIStringType>(Ty))
     construct(ST);
@@ -747,6 +749,32 @@ void DwarfUnit::constructTypeDIE(DIE &Buffer, const DIBasicType *BTy) {
     addUInt(Buffer, dwarf::DW_AT_endianity, std::nullopt, dwarf::DW_END_big);
   else if (BTy->isLittleEndian())
     addUInt(Buffer, dwarf::DW_AT_endianity, std::nullopt, dwarf::DW_END_little);
+}
+
+void DwarfUnit::constructTypeDIE(DIE &Buffer, const DIFixedPointType *BTy) {
+  // Base type handling.
+  constructTypeDIE(Buffer, static_cast<const DIBasicType *>(BTy));
+
+  // Note that DW_FORM_sdata is used here.  This works around a
+  // disagreement between LLVM, GCC, and GDB about whether or not sign
+  // extension should be done.
+  if (BTy->isBinary())
+    addSInt(Buffer, dwarf::DW_AT_binary_scale, dwarf::DW_FORM_sdata,
+            BTy->getFactor());
+  else if (BTy->isDecimal())
+    addSInt(Buffer, dwarf::DW_AT_decimal_scale, dwarf::DW_FORM_sdata,
+            BTy->getFactor());
+  else {
+    DIE *ContextDIE = getOrCreateContextDIE(BTy->getScope());
+    DIE &Constant = createAndAddDIE(dwarf::DW_TAG_constant, *ContextDIE);
+
+    addInt(Constant, dwarf::DW_AT_GNU_numerator, BTy->getNumerator(),
+           !BTy->isSigned());
+    addInt(Constant, dwarf::DW_AT_GNU_denominator, BTy->getDenominator(),
+           !BTy->isSigned());
+
+    addDIEEntry(Buffer, dwarf::DW_AT_small, Constant);
+  }
 }
 
 void DwarfUnit::constructTypeDIE(DIE &Buffer, const DIStringType *STy) {
