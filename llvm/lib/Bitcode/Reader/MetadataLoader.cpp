@@ -1601,11 +1601,11 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     break;
   }
   case bitc::METADATA_SUBRANGE_TYPE: {
-    if (Record.size() != 12)
+    if (Record.size() != 13)
       return error("Invalid record");
 
     IsDistinct = Record[0];
-    DINode::DIFlags Flags = static_cast<DINode::DIFlags>(Record[10]);
+    DINode::DIFlags Flags = static_cast<DINode::DIFlags>(Record[7]);
     MetadataList.assignValue(
         GET_OR_DISTINCT(DISubrangeType,
                         (Context, getMDString(Record[1]),

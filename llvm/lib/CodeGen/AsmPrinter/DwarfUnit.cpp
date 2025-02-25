@@ -1427,7 +1427,7 @@ void DwarfUnit::constructSubrangeDIE(DIE &DW_Subrange, const DISubrangeType *SR,
     } else if (auto *BI = Bound.dyn_cast<ConstantInt *>()) {
       if (Attr == dwarf::DW_AT_GNU_bias) {
         if (BI->getSExtValue() != 0)
-          addUInt(DW_Subrange, Attr, std::nullopt, BI->getSExtValue());
+          addUInt(DW_Subrange, Attr, dwarf::DW_FORM_sdata, BI->getSExtValue());
       } else if (Attr != dwarf::DW_AT_lower_bound || DefaultLowerBound == -1 ||
                  BI->getSExtValue() != DefaultLowerBound || !ForArray)
         addSInt(DW_Subrange, Attr, dwarf::DW_FORM_sdata, BI->getSExtValue());
