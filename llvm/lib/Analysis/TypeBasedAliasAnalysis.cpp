@@ -567,7 +567,8 @@ static bool hasField(TBAAStructTypeNode BaseType,
                      TBAAStructTypeNode FieldType) {
   for (unsigned I = 0, E = BaseType.getNumFields(); I != E; ++I) {
     TBAAStructTypeNode T = BaseType.getFieldType(I);
-    if (T == FieldType || hasField(T, FieldType))
+    if (matchAccessTags(createAccessTag(T.getNode()),
+			createAccessTag(FieldType.getNode())))
       return true;
   }
   return false;
