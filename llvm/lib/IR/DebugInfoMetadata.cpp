@@ -644,6 +644,48 @@ DIGenericSubrange::BoundType DIGenericSubrange::getStride() const {
   return BoundType();
 }
 
+DISubrangeType::DISubrangeType(LLVMContext &C, StorageType Storage,
+                               unsigned Line, uint64_t SizeInBits,
+                               uint32_t AlignInBits, DIFlags Flags,
+                               ArrayRef<Metadata *> Ops)
+    : DIType(C, DISubrangeTypeKind, Storage, dwarf::DW_TAG_subrange_type, Line,
+             SizeInBits, AlignInBits, 0, Flags, Ops) {}
+
+DISubrangeType *DISubrangeType::getImpl(
+    LLVMContext &Context, MDString *Name, Metadata *File, unsigned Line,
+    Metadata *Scope, uint64_t SizeInBits, uint32_t AlignInBits, DIFlags Flags,
+    Metadata *BaseType, Metadata *LowerBound, Metadata *UpperBound,
+    Metadata *Stride, Metadata *Bias, StorageType Storage, bool ShouldCreate) {
+  assert(isCanonical(Name) && "Expected canonical MDString");
+  DEFINE_GETIMPL_LOOKUP(DISubrangeType, (Name, File, Line, Scope, SizeInBits,
+                                         AlignInBits, Flags, BaseType,
+                                         LowerBound, UpperBound, Stride, Bias));
+  Metadata *Ops[] = {File,       Scope,      Name,   BaseType,
+                     LowerBound, UpperBound, Stride, Bias};
+  DEFINE_GETIMPL_STORE(DISubrangeType, (Line, SizeInBits, AlignInBits, Flags),
+                       Ops);
+}
+
+DISubrangeType::BoundType
+DISubrangeType::convertRawToBound(Metadata *IN) const {
+  if (!IN)
+    return BoundType();
+
+  assert(isa<ConstantAsMetadata>(IN) || isa<DIVariable>(IN) ||
+         isa<DIExpression>(IN));
+
+  if (auto *MD = dyn_cast<ConstantAsMetadata>(IN))
+    return BoundType(cast<ConstantInt>(MD->getValue()));
+
+  if (auto *MD = dyn_cast<DIVariable>(IN))
+    return BoundType(MD);
+
+  if (auto *MD = dyn_cast<DIExpression>(IN))
+    return BoundType(MD);
+
+  return BoundType();
+}
+
 DIEnumerator::DIEnumerator(LLVMContext &C, StorageType Storage,
                            const APInt &Value, bool IsUnsigned,
                            ArrayRef<Metadata *> Ops)
@@ -677,13 +719,53 @@ std::optional<DIBasicType::Signedness> DIBasicType::getSignedness() const {
   switch (getEncoding()) {
   case dwarf::DW_ATE_signed:
   case dwarf::DW_ATE_signed_char:
+  case dwarf::DW_ATE_signed_fixed:
     return Signedness::Signed;
   case dwarf::DW_ATE_unsigned:
   case dwarf::DW_ATE_unsigned_char:
+  case dwarf::DW_ATE_unsigned_fixed:
     return Signedness::Unsigned;
   default:
     return std::nullopt;
   }
+}
+
+DIFixedPointType *
+DIFixedPointType::getImpl(LLVMContext &Context, unsigned Tag, MDString *Name,
+                          uint64_t SizeInBits, uint32_t AlignInBits,
+                          unsigned Encoding, DIFlags Flags, unsigned Kind,
+                          int Factor, APInt Numerator, APInt Denominator,
+                          StorageType Storage, bool ShouldCreate) {
+  DEFINE_GETIMPL_LOOKUP(DIFixedPointType,
+                        (Tag, Name, SizeInBits, AlignInBits, Encoding, Flags,
+                         Kind, Factor, Numerator, Denominator));
+  Metadata *Ops[] = {nullptr, nullptr, Name};
+  DEFINE_GETIMPL_STORE(DIFixedPointType,
+                       (Tag, SizeInBits, AlignInBits, Encoding, Flags, Kind,
+                        Factor, Numerator, Denominator),
+                       Ops);
+}
+
+bool DIFixedPointType::isSigned() const {
+  return getEncoding() == dwarf::DW_ATE_signed_fixed;
+}
+
+std::optional<DIFixedPointType::FixedPointKind>
+DIFixedPointType::getFixedPointKind(StringRef Str) {
+  return StringSwitch<std::optional<FixedPointKind>>(Str)
+      .Case("Binary", FixedPointBinary)
+      .Case("Decimal", FixedPointDecimal)
+      .Case("Rational", FixedPointRational)
+      .Default(std::nullopt);
+}
+
+const char *DIFixedPointType::fixedPointKindString(FixedPointKind V) {
+  switch (V) {
+  case FixedPointBinary: return "Binary";
+  case FixedPointDecimal: return "Decimal";
+  case FixedPointRational: return "Rational";
+  }
+  return nullptr;
 }
 
 DIStringType *DIStringType::getImpl(LLVMContext &Context, unsigned Tag,

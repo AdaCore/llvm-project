@@ -1543,6 +1543,39 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     NextMetadataNo++;
     break;
   }
+  case bitc::METADATA_FIXED_POINT_TYPE: {
+    if (Record.size() < 11)
+      return error("Invalid record");
+
+    IsDistinct = Record[0];
+    DINode::DIFlags Flags = static_cast<DINode::DIFlags>(Record[6]);
+
+    size_t Offset = 9;
+
+    auto ReadWideInt = [&]() {
+      uint64_t Encoded = Record[Offset++];
+      unsigned NumWords = Encoded >> 32;
+      unsigned BitWidth = Encoded & 0xffffffff;
+      auto Value = readWideAPInt(ArrayRef(&Record[Offset], NumWords), BitWidth);
+      Offset += NumWords;
+      return Value;
+    };
+
+    APInt Numerator = ReadWideInt();
+    APInt Denominator = ReadWideInt();
+
+    if (Offset != Record.size())
+      return error("Invalid record");
+
+    MetadataList.assignValue(
+        GET_OR_DISTINCT(DIFixedPointType,
+                        (Context, Record[1], getMDString(Record[2]), Record[3],
+                         Record[4], Record[5], Flags, Record[7], Record[8],
+                         Numerator, Denominator)),
+        NextMetadataNo);
+    NextMetadataNo++;
+    break;
+  }
   case bitc::METADATA_STRING_TYPE: {
     if (Record.size() > 9 || Record.size() < 8)
       return error("Invalid record");
@@ -1596,6 +1629,24 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
                          getDITypeRefOrNull(Record[6]), Record[7], Record[8],
                          Record[9], DWARFAddressSpace, PtrAuthData, Flags,
                          getDITypeRefOrNull(Record[11]), Annotations)),
+        NextMetadataNo);
+    NextMetadataNo++;
+    break;
+  }
+  case bitc::METADATA_SUBRANGE_TYPE: {
+    if (Record.size() != 13)
+      return error("Invalid record");
+
+    IsDistinct = Record[0];
+    DINode::DIFlags Flags = static_cast<DINode::DIFlags>(Record[7]);
+    MetadataList.assignValue(
+        GET_OR_DISTINCT(DISubrangeType,
+                        (Context, getMDString(Record[1]),
+                         getMDOrNull(Record[2]), Record[3],
+                         getMDOrNull(Record[4]), Record[5], Record[6], Flags,
+                         getDITypeRefOrNull(Record[8]), getMDOrNull(Record[9]),
+                         getMDOrNull(Record[10]), getMDOrNull(Record[11]),
+                         getMDOrNull(Record[12]))),
         NextMetadataNo);
     NextMetadataNo++;
     break;
