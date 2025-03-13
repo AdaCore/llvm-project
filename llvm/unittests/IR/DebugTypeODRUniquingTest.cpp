@@ -31,7 +31,7 @@ TEST(DebugTypeODRUniquingTest, getODRType) {
   EXPECT_FALSE(DICompositeType::getODRType(
       Context, UUID, dwarf::DW_TAG_class_type, nullptr, nullptr, 0, nullptr,
       nullptr, 0, 0, 0, DINode::FlagZero, nullptr, 0, nullptr, nullptr, nullptr,
-      nullptr, nullptr, nullptr, nullptr, nullptr));
+      nullptr, nullptr, nullptr, nullptr, nullptr, nullptr));
 
   // Enable the mapping.  There still shouldn't be a type.
   Context.enableDebugTypeODRUniquing();
@@ -41,23 +41,22 @@ TEST(DebugTypeODRUniquingTest, getODRType) {
   auto &CT = *DICompositeType::getODRType(
       Context, UUID, dwarf::DW_TAG_class_type, nullptr, nullptr, 0, nullptr,
       nullptr, 0, 0, 0, DINode::FlagZero, nullptr, 0, nullptr, nullptr, nullptr,
-      nullptr, nullptr, nullptr, nullptr, nullptr);
+      nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
   EXPECT_EQ(UUID.getString(), CT.getIdentifier());
 
   // Check that we get it back, even if we change a field.
   EXPECT_EQ(&CT, DICompositeType::getODRTypeIfExists(Context, UUID));
+  EXPECT_EQ(&CT, DICompositeType::getODRType(
+                     Context, UUID, dwarf::DW_TAG_class_type, nullptr, nullptr,
+                     0, nullptr, nullptr, 0, 0, 0, DINode::FlagZero, nullptr, 0,
+                     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                     nullptr, nullptr, nullptr));
   EXPECT_EQ(&CT,
             DICompositeType::getODRType(
-                Context, UUID, dwarf::DW_TAG_class_type, nullptr, nullptr, 0,
-                nullptr, nullptr, 0, 0, 0, DINode::FlagZero, nullptr, 0,
-                nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                nullptr));
-  EXPECT_EQ(&CT, DICompositeType::getODRType(
-                     Context, UUID, dwarf::DW_TAG_class_type,
-                     MDString::get(Context, "name"), nullptr, 0, nullptr,
-                     nullptr, 0, 0, 0, DINode::FlagZero, nullptr, 0, nullptr,
-                     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                     nullptr));
+                Context, UUID, dwarf::DW_TAG_class_type,
+                MDString::get(Context, "name"), nullptr, 0, nullptr, nullptr, 0,
+                0, 0, DINode::FlagZero, nullptr, 0, nullptr, nullptr, nullptr,
+                nullptr, nullptr, nullptr, nullptr, nullptr, nullptr));
 
   // Check that it's discarded with the type map.
   Context.disableDebugTypeODRUniquing();
@@ -77,7 +76,7 @@ TEST(DebugTypeODRUniquingTest, buildODRType) {
   auto &CT = *DICompositeType::buildODRType(
       Context, UUID, dwarf::DW_TAG_class_type, nullptr, nullptr, 0, nullptr,
       nullptr, 0, 0, 0, DINode::FlagFwdDecl, nullptr, 0, nullptr, nullptr,
-      nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+      nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
   EXPECT_EQ(&CT, DICompositeType::getODRTypeIfExists(Context, UUID));
   EXPECT_EQ(dwarf::DW_TAG_class_type, CT.getTag());
 
@@ -86,19 +85,19 @@ TEST(DebugTypeODRUniquingTest, buildODRType) {
                      Context, UUID, dwarf::DW_TAG_class_type, nullptr, nullptr,
                      0, nullptr, nullptr, 0, 0, 0, DINode::FlagFwdDecl, nullptr,
                      0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                     nullptr, nullptr));
+                     nullptr, nullptr, nullptr));
 
   EXPECT_FALSE(DICompositeType::buildODRType(
       Context, UUID, dwarf::DW_TAG_structure_type, nullptr, nullptr, 0, nullptr,
       nullptr, 0, 0, 0, DINode::FlagFwdDecl, nullptr, 0, nullptr, nullptr,
-      nullptr, nullptr, nullptr, nullptr, nullptr, nullptr));
+      nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr));
 
   // Update with a definition.  This time we should see a change.
   EXPECT_EQ(&CT, DICompositeType::buildODRType(
                      Context, UUID, dwarf::DW_TAG_class_type, nullptr, nullptr,
                      0, nullptr, nullptr, 0, 0, 0, DINode::FlagZero, nullptr, 0,
                      nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                     nullptr, nullptr));
+                     nullptr, nullptr, nullptr));
   EXPECT_FALSE(CT.isForwardDecl());
 
   // Further updates should be ignored.
@@ -106,13 +105,13 @@ TEST(DebugTypeODRUniquingTest, buildODRType) {
                      Context, UUID, dwarf::DW_TAG_class_type, nullptr, nullptr,
                      0, nullptr, nullptr, 0, 0, 0, DINode::FlagFwdDecl, nullptr,
                      0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                     nullptr, nullptr));
+                     nullptr, nullptr, nullptr));
   EXPECT_FALSE(CT.isForwardDecl());
   EXPECT_EQ(&CT, DICompositeType::buildODRType(
                      Context, UUID, dwarf::DW_TAG_class_type, nullptr, nullptr,
                      111u, nullptr, nullptr, 0, 0, 0, DINode::FlagZero, nullptr,
                      0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                     nullptr, nullptr));
+                     nullptr, nullptr, nullptr));
   EXPECT_NE(111u, CT.getLine());
 }
 
@@ -125,7 +124,7 @@ TEST(DebugTypeODRUniquingTest, buildODRTypeFields) {
   auto &CT = *DICompositeType::buildODRType(
       Context, UUID, 0, nullptr, nullptr, 0, nullptr, nullptr, 0, 0, 0,
       DINode::FlagFwdDecl, nullptr, 0, nullptr, nullptr, nullptr, nullptr,
-      nullptr, nullptr, nullptr, nullptr);
+      nullptr, nullptr, nullptr, nullptr, nullptr);
 
 // Create macros for running through all the fields except Identifier and Flags.
 #define FOR_EACH_MDFIELD()                                                     \
@@ -158,7 +157,7 @@ TEST(DebugTypeODRUniquingTest, buildODRTypeFields) {
                 Context, UUID, 0, Name, File, Line, Scope, BaseType, SizeInBits,
                 AlignInBits, OffsetInBits, DINode::FlagArtificial, Elements,
                 RuntimeLang, VTableHolder, TemplateParams, nullptr, nullptr,
-                nullptr, nullptr, nullptr, nullptr));
+                nullptr, nullptr, nullptr, nullptr, nullptr));
 
   // Confirm that all the right fields got updated.
 #define DO_FOR_FIELD(X) EXPECT_EQ(X, CT.getRaw##X());

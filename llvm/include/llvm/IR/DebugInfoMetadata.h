@@ -1407,14 +1407,15 @@ class DICompositeType : public DIType {
           DITemplateParameterArray TemplateParams, StringRef Identifier,
           DIDerivedType *Discriminator, Metadata *DataLocation,
           Metadata *Associated, Metadata *Allocated, Metadata *Rank,
-          DINodeArray Annotations, StorageType Storage,
+          DINodeArray Annotations, Metadata *BitStride, StorageType Storage,
           bool ShouldCreate = true) {
-    return getImpl(
-        Context, Tag, getCanonicalMDString(Context, Name), File, Line, Scope,
-        BaseType, SizeInBits, AlignInBits, OffsetInBits, Flags, Elements.get(),
-        RuntimeLang, VTableHolder, TemplateParams.get(),
-        getCanonicalMDString(Context, Identifier), Discriminator, DataLocation,
-        Associated, Allocated, Rank, Annotations.get(), Storage, ShouldCreate);
+    return getImpl(Context, Tag, getCanonicalMDString(Context, Name), File,
+                   Line, Scope, BaseType, SizeInBits, AlignInBits, OffsetInBits,
+                   Flags, Elements.get(), RuntimeLang, VTableHolder,
+                   TemplateParams.get(),
+                   getCanonicalMDString(Context, Identifier), Discriminator,
+                   DataLocation, Associated, Allocated, Rank, Annotations.get(),
+                   BitStride, Storage, ShouldCreate);
   }
   static DICompositeType *
   getImpl(LLVMContext &Context, unsigned Tag, MDString *Name, Metadata *File,
@@ -1424,7 +1425,8 @@ class DICompositeType : public DIType {
           Metadata *VTableHolder, Metadata *TemplateParams,
           MDString *Identifier, Metadata *Discriminator, Metadata *DataLocation,
           Metadata *Associated, Metadata *Allocated, Metadata *Rank,
-          Metadata *Annotations, StorageType Storage, bool ShouldCreate = true);
+          Metadata *Annotations, Metadata *BitStride, StorageType Storage,
+          bool ShouldCreate = true);
 
   TempDICompositeType cloneImpl() const {
     return getTemporary(
@@ -1433,7 +1435,7 @@ class DICompositeType : public DIType {
         getFlags(), getElements(), getRuntimeLang(), getVTableHolder(),
         getTemplateParams(), getIdentifier(), getDiscriminator(),
         getRawDataLocation(), getRawAssociated(), getRawAllocated(),
-        getRawRank(), getAnnotations());
+        getRawRank(), getAnnotations(), getRawBitStride());
   }
 
 public:
@@ -1447,11 +1449,11 @@ public:
        StringRef Identifier = "", DIDerivedType *Discriminator = nullptr,
        Metadata *DataLocation = nullptr, Metadata *Associated = nullptr,
        Metadata *Allocated = nullptr, Metadata *Rank = nullptr,
-       DINodeArray Annotations = nullptr),
+       DINodeArray Annotations = nullptr, Metadata *BitStride = nullptr),
       (Tag, Name, File, Line, Scope, BaseType, SizeInBits, AlignInBits,
        OffsetInBits, Flags, Elements, RuntimeLang, VTableHolder, TemplateParams,
        Identifier, Discriminator, DataLocation, Associated, Allocated, Rank,
-       Annotations))
+       Annotations, BitStride))
   DEFINE_MDNODE_GET(
       DICompositeType,
       (unsigned Tag, MDString *Name, Metadata *File, unsigned Line,
@@ -1461,11 +1463,12 @@ public:
        Metadata *TemplateParams = nullptr, MDString *Identifier = nullptr,
        Metadata *Discriminator = nullptr, Metadata *DataLocation = nullptr,
        Metadata *Associated = nullptr, Metadata *Allocated = nullptr,
-       Metadata *Rank = nullptr, Metadata *Annotations = nullptr),
+       Metadata *Rank = nullptr, Metadata *Annotations = nullptr,
+       Metadata *BitStride = nullptr),
       (Tag, Name, File, Line, Scope, BaseType, SizeInBits, AlignInBits,
        OffsetInBits, Flags, Elements, RuntimeLang, VTableHolder, TemplateParams,
        Identifier, Discriminator, DataLocation, Associated, Allocated, Rank,
-       Annotations))
+       Annotations, BitStride))
 
   TempDICompositeType clone() const { return cloneImpl(); }
 
@@ -1484,7 +1487,7 @@ public:
              unsigned RuntimeLang, Metadata *VTableHolder,
              Metadata *TemplateParams, Metadata *Discriminator,
              Metadata *DataLocation, Metadata *Associated, Metadata *Allocated,
-             Metadata *Rank, Metadata *Annotations);
+             Metadata *Rank, Metadata *Annotations, Metadata *BitStride);
   static DICompositeType *getODRTypeIfExists(LLVMContext &Context,
                                              MDString &Identifier);
 
@@ -1497,15 +1500,14 @@ public:
   ///
   /// If not \a LLVMContext::isODRUniquingDebugTypes(), this function returns
   /// nullptr.
-  static DICompositeType *
-  buildODRType(LLVMContext &Context, MDString &Identifier, unsigned Tag,
-               MDString *Name, Metadata *File, unsigned Line, Metadata *Scope,
-               Metadata *BaseType, uint64_t SizeInBits, uint32_t AlignInBits,
-               uint64_t OffsetInBits, DIFlags Flags, Metadata *Elements,
-               unsigned RuntimeLang, Metadata *VTableHolder,
-               Metadata *TemplateParams, Metadata *Discriminator,
-               Metadata *DataLocation, Metadata *Associated,
-               Metadata *Allocated, Metadata *Rank, Metadata *Annotations);
+  static DICompositeType *buildODRType(
+      LLVMContext &Context, MDString &Identifier, unsigned Tag, MDString *Name,
+      Metadata *File, unsigned Line, Metadata *Scope, Metadata *BaseType,
+      uint64_t SizeInBits, uint32_t AlignInBits, uint64_t OffsetInBits,
+      DIFlags Flags, Metadata *Elements, unsigned RuntimeLang,
+      Metadata *VTableHolder, Metadata *TemplateParams, Metadata *Discriminator,
+      Metadata *DataLocation, Metadata *Associated, Metadata *Allocated,
+      Metadata *Rank, Metadata *Annotations, Metadata *BitStride);
 
   DIType *getBaseType() const { return cast_or_null<DIType>(getRawBaseType()); }
   DINodeArray getElements() const {
@@ -1563,6 +1565,13 @@ public:
   Metadata *getRawAnnotations() const { return getOperand(13); }
   DINodeArray getAnnotations() const {
     return cast_or_null<MDTuple>(getRawAnnotations());
+  }
+
+  Metadata *getRawBitStride() const { return getOperand(14); }
+  ConstantInt *getBitStrideConst() const {
+    if (auto *MD = dyn_cast_or_null<ConstantAsMetadata>(getRawBitStride()))
+      return dyn_cast_or_null<ConstantInt>(MD->getValue());
+    return nullptr;
   }
 
   /// Replace operands.

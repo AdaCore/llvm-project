@@ -850,8 +850,8 @@ DICompositeType *DICompositeType::getImpl(
     Metadata *Elements, unsigned RuntimeLang, Metadata *VTableHolder,
     Metadata *TemplateParams, MDString *Identifier, Metadata *Discriminator,
     Metadata *DataLocation, Metadata *Associated, Metadata *Allocated,
-    Metadata *Rank, Metadata *Annotations, StorageType Storage,
-    bool ShouldCreate) {
+    Metadata *Rank, Metadata *Annotations, Metadata *BitStride,
+    StorageType Storage, bool ShouldCreate) {
   assert(isCanonical(Name) && "Expected canonical MDString");
 
   // Keep this in sync with buildODRType.
@@ -860,11 +860,11 @@ DICompositeType *DICompositeType::getImpl(
                          AlignInBits, OffsetInBits, Flags, Elements,
                          RuntimeLang, VTableHolder, TemplateParams, Identifier,
                          Discriminator, DataLocation, Associated, Allocated,
-                         Rank, Annotations));
+                         Rank, Annotations, BitStride));
   Metadata *Ops[] = {File,          Scope,        Name,           BaseType,
                      Elements,      VTableHolder, TemplateParams, Identifier,
                      Discriminator, DataLocation, Associated,     Allocated,
-                     Rank,          Annotations};
+                     Rank,          Annotations,  BitStride};
   DEFINE_GETIMPL_STORE(
       DICompositeType,
       (Tag, Line, RuntimeLang, SizeInBits, AlignInBits, OffsetInBits, Flags),
@@ -878,7 +878,7 @@ DICompositeType *DICompositeType::buildODRType(
     DIFlags Flags, Metadata *Elements, unsigned RuntimeLang,
     Metadata *VTableHolder, Metadata *TemplateParams, Metadata *Discriminator,
     Metadata *DataLocation, Metadata *Associated, Metadata *Allocated,
-    Metadata *Rank, Metadata *Annotations) {
+    Metadata *Rank, Metadata *Annotations, Metadata *BitStride) {
   assert(!Identifier.getString().empty() && "Expected valid identifier");
   if (!Context.isODRUniquingDebugTypes())
     return nullptr;
@@ -888,7 +888,8 @@ DICompositeType *DICompositeType::buildODRType(
                Context, Tag, Name, File, Line, Scope, BaseType, SizeInBits,
                AlignInBits, OffsetInBits, Flags, Elements, RuntimeLang,
                VTableHolder, TemplateParams, &Identifier, Discriminator,
-               DataLocation, Associated, Allocated, Rank, Annotations);
+               DataLocation, Associated, Allocated, Rank, Annotations,
+               BitStride);
 
   if (CT->getTag() != Tag)
     return nullptr;
@@ -904,7 +905,7 @@ DICompositeType *DICompositeType::buildODRType(
   Metadata *Ops[] = {File,          Scope,        Name,           BaseType,
                      Elements,      VTableHolder, TemplateParams, &Identifier,
                      Discriminator, DataLocation, Associated,     Allocated,
-                     Rank,          Annotations};
+                     Rank,          Annotations,  BitStride};
   assert((std::end(Ops) - std::begin(Ops)) == (int)CT->getNumOperands() &&
          "Mismatched number of operands");
   for (unsigned I = 0, E = CT->getNumOperands(); I != E; ++I)
@@ -920,7 +921,7 @@ DICompositeType *DICompositeType::getODRType(
     DIFlags Flags, Metadata *Elements, unsigned RuntimeLang,
     Metadata *VTableHolder, Metadata *TemplateParams, Metadata *Discriminator,
     Metadata *DataLocation, Metadata *Associated, Metadata *Allocated,
-    Metadata *Rank, Metadata *Annotations) {
+    Metadata *Rank, Metadata *Annotations, Metadata *BitStride) {
   assert(!Identifier.getString().empty() && "Expected valid identifier");
   if (!Context.isODRUniquingDebugTypes())
     return nullptr;
@@ -930,7 +931,7 @@ DICompositeType *DICompositeType::getODRType(
         Context, Tag, Name, File, Line, Scope, BaseType, SizeInBits,
         AlignInBits, OffsetInBits, Flags, Elements, RuntimeLang, VTableHolder,
         TemplateParams, &Identifier, Discriminator, DataLocation, Associated,
-        Allocated, Rank, Annotations);
+        Allocated, Rank, Annotations, BitStride);
   } else {
     if (CT->getTag() != Tag)
       return nullptr;

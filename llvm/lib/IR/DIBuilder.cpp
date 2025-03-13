@@ -644,19 +644,17 @@ DIBuilder::createArrayType(uint64_t Size, uint32_t AlignInBits, DIType *Ty,
   return R;
 }
 
-DICompositeType *
-DIBuilder::createArrayType(DIScope *Scope, StringRef Name, DIFile *File, unsigned LineNumber,
-                           uint64_t Size, uint32_t AlignInBits, DIType *Ty,
-                           DINodeArray Subscripts,
-                           PointerUnion<DIExpression *, DIVariable *> DL,
-                           PointerUnion<DIExpression *, DIVariable *> AS,
-                           PointerUnion<DIExpression *, DIVariable *> AL,
-                           PointerUnion<DIExpression *, DIVariable *> RK) {
+DICompositeType *DIBuilder::createArrayType(
+    DIScope *Scope, StringRef Name, DIFile *File, unsigned LineNumber,
+    uint64_t Size, uint32_t AlignInBits, DIType *Ty, DINodeArray Subscripts,
+    PointerUnion<DIExpression *, DIVariable *> DL,
+    PointerUnion<DIExpression *, DIVariable *> AS,
+    PointerUnion<DIExpression *, DIVariable *> AL,
+    PointerUnion<DIExpression *, DIVariable *> RK, Metadata *BitStride) {
   auto *R = DICompositeType::get(
       VMContext, dwarf::DW_TAG_array_type, Name, File, LineNumber,
-      getNonCompileUnitScope(Scope), Ty, Size,
-      AlignInBits, 0, DINode::FlagZero, Subscripts, 0, nullptr, nullptr, "",
-      nullptr,
+      getNonCompileUnitScope(Scope), Ty, Size, AlignInBits, 0, DINode::FlagZero,
+      Subscripts, 0, nullptr, nullptr, "", nullptr,
       DL.is<DIExpression *>() ? (Metadata *)DL.get<DIExpression *>()
                               : (Metadata *)DL.get<DIVariable *>(),
       AS.is<DIExpression *>() ? (Metadata *)AS.get<DIExpression *>()
@@ -664,7 +662,8 @@ DIBuilder::createArrayType(DIScope *Scope, StringRef Name, DIFile *File, unsigne
       AL.is<DIExpression *>() ? (Metadata *)AL.get<DIExpression *>()
                               : (Metadata *)AL.get<DIVariable *>(),
       RK.is<DIExpression *>() ? (Metadata *)RK.get<DIExpression *>()
-                              : (Metadata *)RK.get<DIVariable *>());
+                              : (Metadata *)RK.get<DIVariable *>(),
+      nullptr, BitStride);
   trackIfUnresolved(R);
   return R;
 }

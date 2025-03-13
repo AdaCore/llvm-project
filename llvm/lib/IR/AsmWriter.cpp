@@ -2266,6 +2266,7 @@ static void writeDICompositeType(raw_ostream &Out, const DICompositeType *N,
   else
     Printer.printMetadata("rank", N->getRawRank(), /*ShouldSkipNull */ true);
   Printer.printMetadata("annotations", N->getRawAnnotations());
+  Printer.printMetadata("bitStride", N->getRawBitStride());
   Out << ")";
 }
 
