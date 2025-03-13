@@ -1600,7 +1600,7 @@ typedef MetadataTest DISubrangeTypeTest;
 TEST_F(DISubrangeTypeTest, get) {
   auto *Base =
       DIBasicType::get(Context, dwarf::DW_TAG_base_type, "test_integer", 32, 0,
-                       dwarf::DW_ATE_signed, 100, DINode::FlagZero);
+                       dwarf::DW_ATE_signed, DINode::FlagZero);
 
   DILocalScope *Scope = getSubprogram();
   DIFile *File = getFile();
