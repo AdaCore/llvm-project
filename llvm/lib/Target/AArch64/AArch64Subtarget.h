@@ -262,6 +262,7 @@ public:
   bool isTargetAndroid() const { return TargetTriple.isAndroid(); }
   bool isTargetFuchsia() const { return TargetTriple.isOSFuchsia(); }
   bool isWindowsArm64EC() const { return TargetTriple.isWindowsArm64EC(); }
+  bool isTargetVxWorks7r2() const { return TargetTriple.isOSVxWorks7r2(); }
 
   bool isTargetCOFF() const { return TargetTriple.isOSBinFormatCOFF(); }
   bool isTargetELF() const { return TargetTriple.isOSBinFormatELF(); }
