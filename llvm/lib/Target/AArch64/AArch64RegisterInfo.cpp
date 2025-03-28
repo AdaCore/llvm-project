@@ -295,6 +295,10 @@ AArch64RegisterInfo::getCallPreservedMask(const MachineFunction &MF,
     return getDarwinCallPreservedMask(MF, CC);
   }
 
+  // ShadowCallStack unsupported on VxWorks7r2 due to nonstandard 'nest'register.
+  if (MF.getSubtarget<AArch64Subtarget>().isTargetVxWorks7r2() && SCS)
+   report_fatal_error("ShadowCallStack attribute not supported on VxWorks7r2.");
+
   if (CC == CallingConv::AArch64_VectorCall)
     return SCS ? CSR_AArch64_AAVPCS_SCS_RegMask : CSR_AArch64_AAVPCS_RegMask;
   if (CC == CallingConv::AArch64_SVE_VectorCall)

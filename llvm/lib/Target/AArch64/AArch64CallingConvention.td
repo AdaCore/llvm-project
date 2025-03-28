@@ -118,10 +118,12 @@ defvar AArch64_Common = [
 
 let Entry = 1 in
 def CC_AArch64_AAPCS : CallingConv<!listconcat(
-  // The 'nest' parameter, if any, is passed in X18.
+  // The 'nest' parameter, if any, is passed in X18, except on VxWorks7r2
+  // where X18 is used as the TCB pointer, so use X9 instead.
   // Darwin and Windows use X18 as the platform register and hence 'nest' isn't
   // currently supported there.
-  [CCIfNest<CCAssignToReg<[X18]>>],
+  [CCIfNest<CCIfSubtarget<"isTargetVxWorks7r2()", CCAssignToReg<[X9]>>>,
+   CCIfNest<CCAssignToReg<[X18]>>],
   AArch64_Common
 )>;
 
