@@ -754,9 +754,8 @@ public:
   Metadata *getRawSizeInBits() const { return getOperand(3); }
   uint64_t getSizeInBits() const {
     if (auto *MD = dyn_cast_or_null<ConstantAsMetadata>(getRawSizeInBits())) {
-      if (ConstantInt *CI = dyn_cast_or_null<ConstantInt>(MD->getValue())) {
+      if (ConstantInt *CI = dyn_cast_or_null<ConstantInt>(MD->getValue()))
         return CI->getZExtValue();
-      }
     }
     return 0;
   }
@@ -764,9 +763,8 @@ public:
   Metadata *getRawOffsetInBits() const { return getOperand(4); }
   uint64_t getOffsetInBits() const {
     if (auto *MD = dyn_cast_or_null<ConstantAsMetadata>(getRawOffsetInBits())) {
-      if (ConstantInt *CI = dyn_cast_or_null<ConstantInt>(MD->getValue())) {
+      if (ConstantInt *CI = dyn_cast_or_null<ConstantInt>(MD->getValue()))
         return CI->getZExtValue();
-      }
     }
     return 0;
   }

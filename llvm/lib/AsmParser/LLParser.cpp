@@ -4727,12 +4727,11 @@ struct MDUnsignedOrMDField : MDEitherFieldImpl<MDUnsignedField, MDField> {
   }
 
   Metadata *getValueAsMetadata(LLVMContext &Context) const {
-    if (isMDUnsignedField()) {
+    if (isMDUnsignedField())
       return ConstantAsMetadata::get(
           ConstantInt::get(Type::getInt64Ty(Context), getMDUnsignedValue()));
-    } else if (isMDField()) {
+    if (isMDField())
       return getMDFieldValue();
-    }
     return nullptr;
   }
 };

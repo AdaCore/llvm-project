@@ -1336,6 +1336,14 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     return MetadataList.upgradeTypeRef(getMDOrNull(ID));
   };
 
+  auto getMetadataOrConstant = [&](bool IsMetadata,
+                                   uint64_t Entry) -> Metadata * {
+    if (IsMetadata)
+      return getMDOrNull(Entry);
+    return ConstantAsMetadata::get(
+        ConstantInt::get(Type::getInt64Ty(Context), Entry));
+  };
+
 #define GET_OR_DISTINCT(CLASS, ARGS)                                           \
   (IsDistinct ? CLASS::getDistinct ARGS : CLASS::get ARGS)
 
@@ -1581,13 +1589,7 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
                                 ? static_cast<DINode::DIFlags>(Record[6])
                                 : DINode::FlagZero;
 
-    Metadata *SizeInBits;
-    if (SizeIsMetadata) {
-      SizeInBits = getMDOrNull(Record[3]);
-    } else {
-      SizeInBits = ConstantAsMetadata::get(
-          ConstantInt::get(Type::getInt64Ty(Context), Record[3]));
-    }
+    Metadata *SizeInBits = getMetadataOrConstant(SizeIsMetadata, Record[3]);
 
     MetadataList.assignValue(
         GET_OR_DISTINCT(DIBasicType,
@@ -1605,13 +1607,7 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     bool SizeIsMetadata = Record[0] & 2;
     DINode::DIFlags Flags = static_cast<DINode::DIFlags>(Record[6]);
 
-    Metadata *SizeInBits;
-    if (SizeIsMetadata) {
-      SizeInBits = getMDOrNull(Record[3]);
-    } else {
-      SizeInBits = ConstantAsMetadata::get(
-          ConstantInt::get(Type::getInt64Ty(Context), Record[3]));
-    }
+    Metadata *SizeInBits = getMetadataOrConstant(SizeIsMetadata, Record[3]);
 
     size_t Offset = 9;
 
@@ -1650,13 +1646,8 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     // than the other fields. The code here enables backward compatibility.
     Metadata *StringLocationExp = SizeIs8 ? nullptr : getMDOrNull(Record[5]);
     unsigned Offset = SizeIs8 ? 5 : 6;
-    Metadata *SizeInBits;
-    if (SizeIsMetadata) {
-      SizeInBits = getMDOrNull(Record[Offset]);
-    } else {
-      SizeInBits = ConstantAsMetadata::get(
-          ConstantInt::get(Type::getInt64Ty(Context), Record[Offset]));
-    }
+    Metadata *SizeInBits =
+        getMetadataOrConstant(SizeIsMetadata, Record[Offset]);
 
     MetadataList.assignValue(
         GET_OR_DISTINCT(DIStringType,
@@ -1695,16 +1686,8 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     bool SizeIsMetadata = Record[0] & 2;
     DINode::DIFlags Flags = static_cast<DINode::DIFlags>(Record[10]);
 
-    Metadata *SizeInBits, *OffsetInBits;
-    if (SizeIsMetadata) {
-      SizeInBits = getMDOrNull(Record[7]);
-      OffsetInBits = getMDOrNull(Record[9]);
-    } else {
-      SizeInBits = ConstantAsMetadata::get(
-          ConstantInt::get(Type::getInt64Ty(Context), Record[7]));
-      OffsetInBits = ConstantAsMetadata::get(
-          ConstantInt::get(Type::getInt64Ty(Context), Record[9]));
-    }
+    Metadata *SizeInBits = getMetadataOrConstant(SizeIsMetadata, Record[7]);
+    Metadata *OffsetInBits = getMetadataOrConstant(SizeIsMetadata, Record[9]);
 
     MetadataList.assignValue(
         GET_OR_DISTINCT(DIDerivedType,
@@ -1726,13 +1709,7 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     bool SizeIsMetadata = Record[0] & 2;
     DINode::DIFlags Flags = static_cast<DINode::DIFlags>(Record[7]);
 
-    Metadata *SizeInBits;
-    if (SizeIsMetadata) {
-      SizeInBits = getMDOrNull(Record[5]);
-    } else {
-      SizeInBits = ConstantAsMetadata::get(
-          ConstantInt::get(Type::getInt64Ty(Context), Record[5]));
-    }
+    Metadata *SizeInBits = getMetadataOrConstant(SizeIsMetadata, Record[5]);
 
     MetadataList.assignValue(
         GET_OR_DISTINCT(DISubrangeType,
@@ -1808,12 +1785,7 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     } else {
       BaseType = getDITypeRefOrNull(Record[6]);
 
-      if (SizeIsMetadata) {
-        OffsetInBits = getMDOrNull(Record[9]);
-      } else {
-        OffsetInBits = ConstantAsMetadata::get(
-            ConstantInt::get(Type::getInt64Ty(Context), Record[9]));
-      }
+      OffsetInBits = getMetadataOrConstant(SizeIsMetadata, Record[9]);
 
       Elements = getMDOrNull(Record[11]);
       VTableHolder = getDITypeRefOrNull(Record[13]);
@@ -1837,13 +1809,7 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
       }
     }
 
-    Metadata *SizeInBits;
-    if (SizeIsMetadata) {
-      SizeInBits = getMDOrNull(Record[7]);
-    } else {
-      SizeInBits = ConstantAsMetadata::get(
-          ConstantInt::get(Type::getInt64Ty(Context), Record[7]));
-    }
+    Metadata *SizeInBits = getMetadataOrConstant(SizeIsMetadata, Record[7]);
 
     DICompositeType *CT = nullptr;
     if (Identifier)
