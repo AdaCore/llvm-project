@@ -432,6 +432,16 @@ DIDerivedType *DIBuilder::createMemberType(
                             std::nullopt, Flags, nullptr, Annotations);
 }
 
+DIDerivedType *DIBuilder::createMemberType(
+    DIScope *Scope, StringRef Name, DIFile *File, unsigned LineNumber,
+    Metadata *SizeInBits, uint32_t AlignInBits, Metadata *OffsetInBits,
+    DINode::DIFlags Flags, DIType *Ty, DINodeArray Annotations) {
+  return DIDerivedType::get(VMContext, dwarf::DW_TAG_member, Name, File,
+                            LineNumber, getNonCompileUnitScope(Scope), Ty,
+                            SizeInBits, AlignInBits, OffsetInBits, std::nullopt,
+                            std::nullopt, Flags, nullptr, Annotations);
+}
+
 static ConstantAsMetadata *getConstantOrNull(Constant *C) {
   if (C)
     return ConstantAsMetadata::get(C);
@@ -460,6 +470,20 @@ DIDerivedType *DIBuilder::createVariantMemberType(DIScope *Scope,
   trackIfUnresolved(V);
   return createVariantMemberType(Scope, {}, nullptr, 0, 0, 0, 0, Discriminant,
                                  DINode::FlagZero, V);
+}
+
+DIDerivedType *DIBuilder::createBitFieldMemberType(
+    DIScope *Scope, StringRef Name, DIFile *File, unsigned LineNumber,
+    Metadata *SizeInBits, Metadata *OffsetInBits, uint64_t StorageOffsetInBits,
+    DINode::DIFlags Flags, DIType *Ty, DINodeArray Annotations) {
+  Flags |= DINode::FlagBitField;
+  return DIDerivedType::get(
+      VMContext, dwarf::DW_TAG_member, Name, File, LineNumber,
+      getNonCompileUnitScope(Scope), Ty, SizeInBits, /*AlignInBits=*/0,
+      OffsetInBits, std::nullopt, std::nullopt, Flags,
+      ConstantAsMetadata::get(ConstantInt::get(IntegerType::get(VMContext, 64),
+                                               StorageOffsetInBits)),
+      Annotations);
 }
 
 DIDerivedType *DIBuilder::createBitFieldMemberType(
@@ -565,6 +589,19 @@ DICompositeType *DIBuilder::createClassType(
   trackIfUnresolved(R);
   if (isa_and_nonnull<DILocalScope>(Context))
     getSubprogramNodesTrackingVector(Context).emplace_back(R);
+  return R;
+}
+
+DICompositeType *DIBuilder::createStructType(
+    DIScope *Context, StringRef Name, DIFile *File, unsigned LineNumber,
+    Metadata *SizeInBits, uint32_t AlignInBits, DINode::DIFlags Flags,
+    DIType *DerivedFrom, DINodeArray Elements, unsigned RunTimeLang,
+    DIType *VTableHolder, StringRef UniqueIdentifier) {
+  auto *R = DICompositeType::get(
+      VMContext, dwarf::DW_TAG_structure_type, Name, File, LineNumber,
+      getNonCompileUnitScope(Context), DerivedFrom, SizeInBits, AlignInBits, 0,
+      Flags, Elements, RunTimeLang, VTableHolder, nullptr, UniqueIdentifier);
+  trackIfUnresolved(R);
   return R;
 }
 
