@@ -3759,6 +3759,59 @@ enum CX_StorageClass {
 };
 
 /**
+ * Represents a specific kind of binary operator which can appear at a cursor.
+ */
+enum CX_BinaryOperatorKind {
+  CX_BO_Invalid = 0,
+  CX_BO_PtrMemD = 1,
+  CX_BO_PtrMemI = 2,
+  CX_BO_Mul = 3,
+  CX_BO_Div = 4,
+  CX_BO_Rem = 5,
+  CX_BO_Add = 6,
+  CX_BO_Sub = 7,
+  CX_BO_Shl = 8,
+  CX_BO_Shr = 9,
+  CX_BO_Cmp = 10,
+  CX_BO_LT = 11,
+  CX_BO_GT = 12,
+  CX_BO_LE = 13,
+  CX_BO_GE = 14,
+  CX_BO_EQ = 15,
+  CX_BO_NE = 16,
+  CX_BO_And = 17,
+  CX_BO_Xor = 18,
+  CX_BO_Or = 19,
+  CX_BO_LAnd = 20,
+  CX_BO_LOr = 21,
+  CX_BO_Assign = 22,
+  CX_BO_MulAssign = 23,
+  CX_BO_DivAssign = 24,
+  CX_BO_RemAssign = 25,
+  CX_BO_AddAssign = 26,
+  CX_BO_SubAssign = 27,
+  CX_BO_ShlAssign = 28,
+  CX_BO_ShrAssign = 29,
+  CX_BO_AndAssign = 30,
+  CX_BO_XorAssign = 31,
+  CX_BO_OrAssign = 32,
+  CX_BO_Comma = 33,
+  CX_BO_LAST = CX_BO_Comma
+};
+
+/**
+ * \brief Returns the operator code for the binary operator.
+ */
+CINDEX_LINKAGE enum CX_BinaryOperatorKind
+clang_Cursor_getBinaryOpcode(CXCursor C);
+
+/**
+ * \brief Returns a string containing the spelling of the binary operator.
+ */
+CINDEX_LINKAGE CXString
+clang_Cursor_getBinaryOpcodeStr(enum CX_BinaryOperatorKind Op);
+
+/**
  * Returns the storage class for a function or variable declaration.
  *
  * If the passed in Cursor is not a function or variable declaration,
@@ -6544,74 +6597,73 @@ CINDEX_LINKAGE unsigned clang_Type_visitFields(CXType T, CXFieldVisitor visitor,
  */
 enum CXBinaryOperatorKind {
   /** This value describes cursors which are not binary operators. */
-  CXBinaryOperator_Invalid = 0,
+  CXBinaryOperator_Invalid,
   /** C++ Pointer - to - member operator. */
-  CXBinaryOperator_PtrMemD = 1,
+  CXBinaryOperator_PtrMemD,
   /** C++ Pointer - to - member operator. */
-  CXBinaryOperator_PtrMemI = 2,
+  CXBinaryOperator_PtrMemI,
   /** Multiplication operator. */
-  CXBinaryOperator_Mul = 3,
+  CXBinaryOperator_Mul,
   /** Division operator. */
-  CXBinaryOperator_Div = 4,
+  CXBinaryOperator_Div,
   /** Remainder operator. */
-  CXBinaryOperator_Rem = 5,
+  CXBinaryOperator_Rem,
   /** Addition operator. */
-  CXBinaryOperator_Add = 6,
+  CXBinaryOperator_Add,
   /** Subtraction operator. */
-  CXBinaryOperator_Sub = 7,
+  CXBinaryOperator_Sub,
   /** Bitwise shift left operator. */
-  CXBinaryOperator_Shl = 8,
+  CXBinaryOperator_Shl,
   /** Bitwise shift right operator. */
-  CXBinaryOperator_Shr = 9,
+  CXBinaryOperator_Shr,
   /** C++ three-way comparison (spaceship) operator. */
-  CXBinaryOperator_Cmp = 10,
+  CXBinaryOperator_Cmp,
   /** Less than operator. */
-  CXBinaryOperator_LT = 11,
+  CXBinaryOperator_LT,
   /** Greater than operator. */
-  CXBinaryOperator_GT = 12,
+  CXBinaryOperator_GT,
   /** Less or equal operator. */
-  CXBinaryOperator_LE = 13,
+  CXBinaryOperator_LE,
   /** Greater or equal operator. */
-  CXBinaryOperator_GE = 14,
+  CXBinaryOperator_GE,
   /** Equal operator. */
-  CXBinaryOperator_EQ = 15,
+  CXBinaryOperator_EQ,
   /** Not equal operator. */
-  CXBinaryOperator_NE = 16,
+  CXBinaryOperator_NE,
   /** Bitwise AND operator. */
-  CXBinaryOperator_And = 17,
+  CXBinaryOperator_And,
   /** Bitwise XOR operator. */
-  CXBinaryOperator_Xor = 18,
+  CXBinaryOperator_Xor,
   /** Bitwise OR operator. */
-  CXBinaryOperator_Or = 19,
+  CXBinaryOperator_Or,
   /** Logical AND operator. */
-  CXBinaryOperator_LAnd = 20,
+  CXBinaryOperator_LAnd,
   /** Logical OR operator. */
-  CXBinaryOperator_LOr = 21,
+  CXBinaryOperator_LOr,
   /** Assignment operator. */
-  CXBinaryOperator_Assign = 22,
+  CXBinaryOperator_Assign,
   /** Multiplication assignment operator. */
-  CXBinaryOperator_MulAssign = 23,
+  CXBinaryOperator_MulAssign,
   /** Division assignment operator. */
-  CXBinaryOperator_DivAssign = 24,
+  CXBinaryOperator_DivAssign,
   /** Remainder assignment operator. */
-  CXBinaryOperator_RemAssign = 25,
+  CXBinaryOperator_RemAssign,
   /** Addition assignment operator. */
-  CXBinaryOperator_AddAssign = 26,
+  CXBinaryOperator_AddAssign,
   /** Subtraction assignment operator. */
-  CXBinaryOperator_SubAssign = 27,
+  CXBinaryOperator_SubAssign,
   /** Bitwise shift left assignment operator. */
-  CXBinaryOperator_ShlAssign = 28,
+  CXBinaryOperator_ShlAssign,
   /** Bitwise shift right assignment operator. */
-  CXBinaryOperator_ShrAssign = 29,
+  CXBinaryOperator_ShrAssign,
   /** Bitwise AND assignment operator. */
-  CXBinaryOperator_AndAssign = 30,
+  CXBinaryOperator_AndAssign,
   /** Bitwise XOR assignment operator. */
-  CXBinaryOperator_XorAssign = 31,
+  CXBinaryOperator_XorAssign,
   /** Bitwise OR assignment operator. */
-  CXBinaryOperator_OrAssign = 32,
+  CXBinaryOperator_OrAssign,
   /** Comma operator. */
-  CXBinaryOperator_Comma = 33,
-  CXBinaryOperator_Last = CXBinaryOperator_Comma
+  CXBinaryOperator_Comma
 };
 
 /**
