@@ -31,6 +31,10 @@
 #include <psapi.h>
 // clang-format on
 
+#if defined(PSAPI_VERSION) && PSAPI_VERSION == 1
+#pragma comment(lib, "psapi")
+#endif
+
 namespace fuzzer {
 
 static const FuzzingOptions* HandlerOpt = nullptr;

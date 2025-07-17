@@ -257,7 +257,17 @@ void tools::MinGW::Linker::ConstructJob(Compilation &C, const JobAction &JA,
 
   // TODO: Add profile stuff here
 
-  if (TC.ShouldLinkCXXStdlib(Args)) {
+  bool NeedFuzzerDeps = false;
+  if (Sanitize.needsFuzzer() && Sanitize.linkRuntimes() &&
+      !Args.hasArg(options::OPT_shared)) {
+    NeedFuzzerDeps = true;
+    CmdArgs.push_back("--whole-archive");
+    CmdArgs.push_back(TC.getCompilerRTArgString(Args, "fuzzer"));
+    CmdArgs.push_back("--no-whole-archive");
+  }
+
+  if (TC.ShouldLinkCXXStdlib(Args) ||
+      (NeedFuzzerDeps && !Args.hasArg(options::OPT_nostdlibxx))) {
     bool OnlyLibstdcxxStatic = Args.hasArg(options::OPT_static_libstdcxx) &&
                                !Args.hasArg(options::OPT_static);
     if (OnlyLibstdcxxStatic)
@@ -611,6 +621,8 @@ SanitizerMask toolchains::MinGW::getSupportedSanitizers() const {
   Res |= SanitizerKind::Address;
   Res |= SanitizerKind::PointerCompare;
   Res |= SanitizerKind::PointerSubtract;
+  Res |= SanitizerKind::Fuzzer;
+  Res |= SanitizerKind::FuzzerNoLink;
   Res |= SanitizerKind::Vptr;
   return Res;
 }
