@@ -35,6 +35,9 @@
 /* Derive the target from the program name. */
 #cmakedefine01 CLANG_GET_TARGET_FROM_PROGRAM_NAME
 
+/* Normalize the target used to find baremetal runtimes. */
+#cmakedefine01 CLANG_BAREMETAL_NORMALIZE_TARGET
+
 /* Multilib basename for libdir. */
 #define CLANG_INSTALL_LIBDIR_BASENAME "${CLANG_INSTALL_LIBDIR_BASENAME}"
 

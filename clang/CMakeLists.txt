@@ -300,6 +300,7 @@ if (NOT LLVM_LINK_LLVM_DYLIB AND CLANG_LINK_CLANG_DYLIB)
 endif()
 
 option(CLANG_GET_TARGET_FROM_PROGRAM_NAME "Derive the target from the program name" ON)
+option(CLANG_BAREMETAL_NORMALIZE_TARGET "Normalize the target used to find baremetal runtimes" OFF)
 
 # The libdir suffix must exactly match whatever LLVM's configuration used.
 set(CLANG_LIBDIR_SUFFIX "${LLVM_LIBDIR_SUFFIX}")

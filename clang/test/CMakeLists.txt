@@ -2,6 +2,7 @@
 # for use by Lit, and delegates to LLVM's lit test handlers.
 
 llvm_canonicalize_cmake_booleans(
+  CLANG_BAREMETAL_NORMALIZE_TARGET
   CLANG_BUILD_EXAMPLES
   CLANG_BUILT_STANDALONE
   CLANG_DEFAULT_PIE_ON_LINUX
