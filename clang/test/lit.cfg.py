@@ -8,7 +8,6 @@ import tempfile
 
 import lit.formats
 import lit.util
-
 from lit.llvm import llvm_config
 from lit.llvm.subst import ToolSubst
 from lit.llvm.subst import FindTool
@@ -339,6 +338,9 @@ if config.has_plugins and config.llvm_plugin_ext:
 
 if config.clang_default_pie_on_linux:
     config.available_features.add("default-pie-on-linux")
+
+if config.clang_baremetal_normalize_target:
+    config.available_features.add("baremetal-normalize-target")
 
 # Set available features we allow tests to conditionalize on.
 #
