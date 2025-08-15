@@ -15,6 +15,7 @@
 #include "Arch/AArch64.h"
 #include "Arch/ARM.h"
 #include "Arch/RISCV.h"
+#include "clang/Config/config.h"
 #include "clang/Driver/Compilation.h"
 #include "clang/Driver/Driver.h"
 #include "clang/Driver/MultilibBuilder.h"
@@ -124,7 +125,10 @@ static std::string computeClangRuntimesSysRoot(const Driver &D,
   llvm::sys::path::append(SysRootDir, "..", "lib", "clang-runtimes");
 
   if (IncludeTriple)
-    llvm::sys::path::append(SysRootDir, D.getTargetTriple());
+    llvm::sys::path::append(SysRootDir,
+                            CLANG_BAREMETAL_NORMALIZE_TARGET
+                                ? llvm::Triple::normalize(D.getTargetTriple())
+                                : D.getTargetTriple());
 
   return std::string(SysRootDir);
 }
