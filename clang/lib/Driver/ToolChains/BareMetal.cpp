@@ -14,6 +14,7 @@
 
 #include "Arch/ARM.h"
 #include "Arch/RISCV.h"
+#include "clang/Config/config.h"
 #include "clang/Driver/Compilation.h"
 #include "clang/Driver/Driver.h"
 #include "clang/Driver/DriverDiagnostic.h"
@@ -211,7 +212,9 @@ static std::string computeBaseSysRoot(const Driver &D,
     return std::string(SysRootDir);
 
   // Otherwise fall back to the old behaviour of appending the target triple.
-  llvm::sys::path::append(SysRootDir, D.getTargetTriple());
+  llvm::sys::path::append(SysRootDir, CLANG_BAREMETAL_NORMALIZE_TARGET
+                                          ? Triple.getTriple()
+                                          : D.getTargetTriple());
   return std::string(SysRootDir);
 }
 

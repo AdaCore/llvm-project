@@ -220,6 +220,9 @@ if config.clang_default_pie_on_linux:
 if config.clang_get_target_from_program_name:
     config.available_features.add('get-target-from-program-name')
 
+if config.clang_baremetal_normalize_target:
+    config.available_features.add('baremetal-normalize-target')
+
 # Set available features we allow tests to conditionalize on.
 #
 if config.clang_default_cxx_stdlib != "":
