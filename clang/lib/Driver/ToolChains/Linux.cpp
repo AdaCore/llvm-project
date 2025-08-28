@@ -286,7 +286,7 @@ Linux::Linux(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
   if (IsCSKY && !SelectedMultilibs.empty())
     SysRoot = SysRoot + SelectedMultilibs.back().osSuffix();
 
-  if ((IsMips || IsCSKY) && !SysRoot.empty())
+  if ((IsMips || IsCSKY || isCrossCompiling()) && !SysRoot.empty())
     ExtraOpts.push_back("--sysroot=" + SysRoot);
 
   // Do not use 'gnu' hash style for Mips targets because .gnu.hash
@@ -411,6 +411,11 @@ std::string Linux::computeSysRoot() const {
     if (getVFS().exists(Path))
       return Path;
     return std::string();
+  }
+
+  if (isCrossCompiling()) {
+    if (const char *env_prefix = std::getenv("ENV_PREFIX"))
+      return env_prefix;
   }
 
   if (!GCCInstallation.isValid() || !getTriple().isMIPS())
