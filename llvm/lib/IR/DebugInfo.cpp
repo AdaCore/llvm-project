@@ -358,7 +358,7 @@ void DebugInfoFinder::processSubprogram(DISubprogram *SP) {
       [this](const DILocalVariable *LV) { processVariable(LV); },
       [](const DILabel *L) {},
       [this](const DIImportedEntity *IE) { processImportedEntity(IE); },
-      [this](const DIType *T) { processType(T); });
+      [this](DIType *T) { processType(T); });
 }
 
 void DebugInfoFinder::processVariable(const DILocalVariable *DV) {

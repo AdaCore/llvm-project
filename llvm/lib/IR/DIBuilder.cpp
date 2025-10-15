@@ -381,10 +381,13 @@ DIDerivedType *DIBuilder::createTypedef(DIType *Ty, StringRef Name,
                                         DIScope *Context, uint32_t AlignInBits,
                                         DINode::DIFlags Flags,
                                         DINodeArray Annotations) {
-  return DIDerivedType::get(VMContext, dwarf::DW_TAG_typedef, Name, File,
-                            LineNo, getNonCompileUnitScope(Context), Ty,
-                            (uint64_t)0, AlignInBits, (uint64_t)0, std::nullopt,
-                            std::nullopt, Flags, nullptr, Annotations);
+  auto *T = DIDerivedType::get(
+      VMContext, dwarf::DW_TAG_typedef, Name, File, LineNo,
+      getNonCompileUnitScope(Context), Ty, (uint64_t)0, AlignInBits,
+      (uint64_t)0, std::nullopt, std::nullopt, Flags, nullptr, Annotations);
+  if (isa_and_nonnull<DILocalScope>(Context))
+    getSubprogramNodesTrackingVector(Context).emplace_back(T);
+  return T;
 }
 
 DIDerivedType *
@@ -608,6 +611,8 @@ DICompositeType *DIBuilder::createStructType(
       nullptr, UniqueIdentifier, nullptr, nullptr, nullptr, nullptr, nullptr,
       nullptr, Specification, NumExtraInhabitants);
   trackIfUnresolved(R);
+  if (isa_and_nonnull<DILocalScope>(Context))
+    getSubprogramNodesTrackingVector(Context).emplace_back(R);
   return R;
 }
 
@@ -692,6 +697,8 @@ DIDerivedType *DIBuilder::createSetType(DIScope *Scope, StringRef Name,
                                SizeInBits, AlignInBits, 0, std::nullopt,
                                std::nullopt, DINode::FlagZero);
   trackIfUnresolved(R);
+  if (isa_and_nonnull<DILocalScope>(Scope))
+    getSubprogramNodesTrackingVector(Scope).emplace_back(R);
   return R;
 }
 
@@ -727,6 +734,8 @@ DICompositeType *DIBuilder::createArrayType(
                               : (Metadata *)cast<DIVariable *>(RK),
       nullptr, nullptr, 0, BitStride);
   trackIfUnresolved(R);
+  if (isa_and_nonnull<DILocalScope>(Scope))
+    getSubprogramNodesTrackingVector(Scope).emplace_back(R);
   return R;
 }
 
@@ -872,9 +881,12 @@ DISubrangeType *DIBuilder::createSubrangeType(
     uint64_t SizeInBits, uint32_t AlignInBits, DINode::DIFlags Flags,
     DIType *Ty, Metadata *LowerBound, Metadata *UpperBound, Metadata *Stride,
     Metadata *Bias) {
-  return DISubrangeType::get(VMContext, Name, File, LineNo, Scope, SizeInBits,
-                             AlignInBits, Flags, Ty, LowerBound, UpperBound,
-                             Stride, Bias);
+  auto *T = DISubrangeType::get(VMContext, Name, File, LineNo, Scope,
+                                SizeInBits, AlignInBits, Flags, Ty, LowerBound,
+                                UpperBound, Stride, Bias);
+  if (isa_and_nonnull<DILocalScope>(Scope))
+    getSubprogramNodesTrackingVector(Scope).emplace_back(T);
+  return T;
 }
 
 static void checkGlobalVariableScope(DIScope *Context) {
