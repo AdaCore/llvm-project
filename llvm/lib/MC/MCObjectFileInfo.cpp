@@ -538,7 +538,7 @@ void MCObjectFileInfo::initELFMCObjectFileInfo(const Triple &T, bool Large) {
       Ctx->getELFSection(".eh_frame", EHSectionType, EHSectionFlags);
 
   CallGraphSection =
-      Ctx->getELFSection(".llvm.callgraph", ELF::SHT_PROGBITS, 0);
+      Ctx->getELFSection(".llvm.callgraph", ELF::SHT_LLVM_CALL_GRAPH, 0);
 
   StackSizesSection = Ctx->getELFSection(".stack_sizes", ELF::SHT_PROGBITS, 0);
 
@@ -1136,8 +1136,9 @@ MCObjectFileInfo::getCallGraphSection(const MCSection &TextSec) const {
     Flags |= ELF::SHF_GROUP;
   }
 
-  return Ctx->getELFSection(".llvm.callgraph", ELF::SHT_PROGBITS, Flags, 0,
-                            GroupName, /*IsComdat=*/true, ElfSec.getUniqueID(),
+  return Ctx->getELFSection(".llvm.callgraph", ELF::SHT_LLVM_CALL_GRAPH, Flags,
+                            0, GroupName, /*IsComdat=*/true,
+                            ElfSec.getUniqueID(),
                             cast<MCSymbolELF>(TextSec.getBeginSymbol()));
 }
 

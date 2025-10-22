@@ -176,6 +176,8 @@ void MCSectionELF::printSwitchToSection(const MCAsmInfo &MAI, const Triple &T,
     OS << "llvm_lto";
   else if (Type == ELF::SHT_LLVM_JT_SIZES)
     OS << "llvm_jt_sizes";
+  else if (Type == ELF::SHT_LLVM_CALL_GRAPH)
+    OS << "llvm_call_graph";
   else
     OS << "0x" << Twine::utohexstr(Type);
 
