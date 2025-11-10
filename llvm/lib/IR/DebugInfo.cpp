@@ -294,7 +294,7 @@ void DebugInfoFinder::processType(DIType *DT) {
   }
 }
 
-void DebugInfoFinder::processImportedEntity(DIImportedEntity *Import) {
+void DebugInfoFinder::processImportedEntity(const DIImportedEntity *Import) {
   auto *Entity = Import->getEntity();
   if (auto *T = dyn_cast<DIType>(Entity))
     processType(T);
@@ -354,15 +354,13 @@ void DebugInfoFinder::processSubprogram(DISubprogram *SP) {
     }
   }
 
-  for (auto *N : SP->getRetainedNodes()) {
-    if (auto *Var = dyn_cast_or_null<DILocalVariable>(N))
-      processVariable(Var);
-    else if (auto *Import = dyn_cast_or_null<DIImportedEntity>(N))
-      processImportedEntity(Import);
-  }
+  SP->forEachRetainedNode(
+      [this](const DILocalVariable *LV) { processVariable(LV); },
+      [](const DILabel *L) {},
+      [this](const DIImportedEntity *IE) { processImportedEntity(IE); });
 }
 
-void DebugInfoFinder::processVariable(DILocalVariable *DV) {
+void DebugInfoFinder::processVariable(const DILocalVariable *DV) {
   if (!NodesSeen.insert(DV).second)
     return;
   processScope(DV->getScope());
