@@ -208,11 +208,11 @@ bool Rewriter::InsertTextAfterToken(SourceLocation Loc, StringRef Str) {
 
 /// RemoveText - Remove the specified text region.
 bool Rewriter::RemoveText(SourceLocation Start, unsigned Length,
-                          RewriteOptions opts) {
+                          RewriteOptions opts, bool AfterInserts) {
   if (!isRewritable(Start)) return true;
   FileID FID;
   unsigned StartOffs = getLocationOffsetAndFileID(Start, FID);
-  getEditBuffer(FID).RemoveText(StartOffs, Length, opts.RemoveLineIfEmpty);
+  getEditBuffer(FID).RemoveText(StartOffs, Length, opts.RemoveLineIfEmpty, AfterInserts);
   return false;
 }
 

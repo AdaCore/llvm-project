@@ -240,6 +240,12 @@
 // CHECK-RISCV64-NO-HOST-INC-SAME: "-internal-isystem" "[[RESOURCE]]{{[/\\]+}}include"
 // CHECK-RISCV64-NO-HOST-INC-SAME: "-internal-isystem" "[[INSTALLEDDIR]]{{[/\\]+}}..{{[/\\]+}}lib{{[/\\]+}}clang-runtimes{{[/\\]+[^"]*}}include"
 
+// RUN: %clang -### --target=aarch64-none-elf %s -nolibc 2>&1 \
+// RUN:   | FileCheck -check-prefix=CHECK-AARCH64-NOLIBC %s
+// CHECK-AARCH64-NOLIBC-NOT: "-lc"
+// CHECK-AARCH64-NOLIBC-NOT: "-lm"
+// CHECK-AARCH64-NOLIBC: "{{[^"]*}}libclang_rt.builtins.a"
+
 // RUN: %clang %s -### --target=riscv64-unknown-elf -o %t.out -L some/directory/user/asked/for \
 // RUN:     --sysroot=%S/Inputs/basic_riscv64_tree/riscv64-unknown-elf 2>&1 \
 // RUN:   | FileCheck --check-prefix=CHECK-RV64 %s

@@ -8,10 +8,8 @@ import tempfile
 
 import lit.formats
 import lit.util
-
 from lit.llvm import llvm_config
-from lit.llvm.subst import ToolSubst
-from lit.llvm.subst import FindTool
+from lit.llvm.subst import FindTool, ToolSubst
 
 # Configuration file for the 'lit' test runner.
 
@@ -140,6 +138,7 @@ def have_host_out_of_process_jit_feature_support():
 
     return False
 
+
 def have_host_jit_feature_support(feature_name):
     clang_repl_exe = lit.util.which("clang-repl", config.clang_tools_dir)
 
@@ -159,24 +158,29 @@ def have_host_jit_feature_support(feature_name):
 
     return "true" in clang_repl_out
 
+
 def have_host_clang_repl_cuda():
-    clang_repl_exe = lit.util.which('clang-repl', config.clang_tools_dir)
+    clang_repl_exe = lit.util.which("clang-repl", config.clang_tools_dir)
 
     if not clang_repl_exe:
         return False
 
-    testcode = b'\n'.join([
-        b"__global__ void test_func() {}",
-        b"test_func<<<1,1>>>();",
-        b"extern \"C\" int puts(const char *s);",
-        b"puts(cudaGetLastError() ? \"failure\" : \"success\");",
-        b"%quit"
-    ])
+    testcode = b"\n".join(
+        [
+            b"__global__ void test_func() {}",
+            b"test_func<<<1,1>>>();",
+            b'extern "C" int puts(const char *s);',
+            b'puts(cudaGetLastError() ? "failure" : "success");',
+            b"%quit",
+        ]
+    )
     try:
-        clang_repl_cmd = subprocess.run([clang_repl_exe, '--cuda'],
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE,
-                                        input=testcode)
+        clang_repl_cmd = subprocess.run(
+            [clang_repl_exe, "--cuda"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            input=testcode,
+        )
     except OSError:
         return False
 
@@ -186,11 +190,12 @@ def have_host_clang_repl_cuda():
 
     return False
 
-if have_host_jit_feature_support('jit'):
-    config.available_features.add('host-supports-jit')
+
+if have_host_jit_feature_support("jit"):
+    config.available_features.add("host-supports-jit")
 
     if have_host_clang_repl_cuda():
-        config.available_features.add('host-supports-cuda')
+        config.available_features.add("host-supports-cuda")
 
     if have_host_out_of_process_jit_feature_support():
         config.available_features.add("host-supports-out-of-process-jit")
@@ -263,6 +268,9 @@ if config.has_plugins and config.llvm_plugin_ext:
 
 if config.clang_default_pie_on_linux:
     config.available_features.add("default-pie-on-linux")
+
+if config.clang_baremetal_normalize_target:
+    config.available_features.add("baremetal-normalize-target")
 
 # Set available features we allow tests to conditionalize on.
 #
@@ -402,9 +410,9 @@ elif platform.system() == "AIX":
 # "OBJECT_MODE" to "any" by default on AIX OS.
 
 if "system-aix" in config.available_features:
-   config.substitutions.append(("llvm-nm", "env OBJECT_MODE=any llvm-nm"))
-   config.substitutions.append(("llvm-ar", "env OBJECT_MODE=any llvm-ar"))
-   config.substitutions.append(("llvm-ranlib", "env OBJECT_MODE=any llvm-ranlib"))
+    config.substitutions.append(("llvm-nm", "env OBJECT_MODE=any llvm-nm"))
+    config.substitutions.append(("llvm-ar", "env OBJECT_MODE=any llvm-ar"))
+    config.substitutions.append(("llvm-ranlib", "env OBJECT_MODE=any llvm-ranlib"))
 
 # It is not realistically possible to account for all options that could
 # possibly be present in system and user configuration files, so disable

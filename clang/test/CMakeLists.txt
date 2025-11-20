@@ -3,6 +3,7 @@
 
 llvm_canonicalize_cmake_booleans(
   BUILD_SHARED_LIBS
+  CLANG_BAREMETAL_NORMALIZE_TARGET
   CLANG_BUILD_EXAMPLES
   CLANG_BUILT_STANDALONE
   CLANG_DEFAULT_PIE_ON_LINUX
@@ -34,19 +35,19 @@ llvm_canonicalize_cmake_booleans(
 # not be the case when building standalone against installed LLVM.
 set(TEST_WITH_Z3_MOCK 0)
 if(LLVM_WITH_Z3 AND Z3_FOUND AND CMAKE_SYSTEM_NAME MATCHES "Linux")
-  llvm_add_library(
+    llvm_add_library(
     MockZ3SolverCheck
     MODULE Analysis/z3/Inputs/MockZ3_solver_check.cpp
     DISABLE_LLVM_LINK_LLVM_DYLIB)
 
-  if(TARGET MockZ3SolverCheck)
-    list(APPEND CLANG_TEST_DEPS
+    if(TARGET MockZ3SolverCheck)
+        list(APPEND CLANG_TEST_DEPS
       MockZ3SolverCheck)
-    target_include_directories(
+        target_include_directories(
       MockZ3SolverCheck
       PRIVATE ${Z3_INCLUDE_DIR})
-    set(TEST_WITH_Z3_MOCK 1)
-  endif()
+        set(TEST_WITH_Z3_MOCK 1)
+    endif()
 endif()
 
 configure_lit_site_cfg(
@@ -84,7 +85,7 @@ configure_lit_site_cfg(
 
 option(CLANG_TEST_USE_VG "Run Clang tests under Valgrind" OFF)
 if(CLANG_TEST_USE_VG)
-  set(CLANG_TEST_EXTRA_ARGS ${CLANG_TEST_EXTRA_ARGS} "--vg")
+    set(CLANG_TEST_EXTRA_ARGS ${CLANG_TEST_EXTRA_ARGS} "--vg")
 endif ()
 
 list(APPEND CLANG_TEST_DEPS
@@ -111,7 +112,7 @@ list(APPEND CLANG_TEST_DEPS
   )
 
 if(CLANG_ENABLE_CIR)
-  list(APPEND CLANG_TEST_DEPS
+    list(APPEND CLANG_TEST_DEPS
     cir-opt
     cir-translate
     mlir-translate
@@ -119,14 +120,14 @@ if(CLANG_ENABLE_CIR)
 endif()
 
 if(CLANG_ENABLE_STATIC_ANALYZER)
-  list(APPEND CLANG_TEST_DEPS
+    list(APPEND CLANG_TEST_DEPS
     clang-check
     clang-extdef-mapping
     )
 endif()
 
 if(CLANG_BUILD_EXAMPLES AND CLANG_PLUGIN_SUPPORT)
-  list(APPEND CLANG_TEST_DEPS
+    list(APPEND CLANG_TEST_DEPS
     Attribute
     AnnotateFunctions
     CallSuperAttr
@@ -137,16 +138,16 @@ if(CLANG_BUILD_EXAMPLES AND CLANG_PLUGIN_SUPPORT)
 endif ()
 
 if(LLVM_INCLUDE_SPIRV_TOOLS_TESTS)
-  list(APPEND CLANG_TEST_DEPS
+    list(APPEND CLANG_TEST_DEPS
     spirv-dis
     spirv-val
     spirv-as
     spirv-link
     )
-endif()    
+endif()
 
 if( NOT CLANG_BUILT_STANDALONE )
-  list(APPEND CLANG_TEST_DEPS
+    list(APPEND CLANG_TEST_DEPS
     llvm-config
     FileCheck count not
     llc
@@ -180,23 +181,23 @@ if( NOT CLANG_BUILT_STANDALONE )
     yaml2obj
     )
 
-  if(TARGET llvm-lto)
-    list(APPEND CLANG_TEST_DEPS llvm-lto)
-  endif()
+    if(TARGET llvm-lto)
+        list(APPEND CLANG_TEST_DEPS llvm-lto)
+    endif()
 endif()
 
 if(CLANG_ENABLE_STATIC_ANALYZER)
-  if(CLANG_PLUGIN_SUPPORT AND LLVM_ENABLE_PLUGINS) # Determine if we built them
-    list(APPEND CLANG_TEST_DEPS
+    if(CLANG_PLUGIN_SUPPORT AND LLVM_ENABLE_PLUGINS) # Determine if we built them
+        list(APPEND CLANG_TEST_DEPS
       SampleAnalyzerPlugin
       CheckerDependencyHandlingAnalyzerPlugin
       CheckerOptionHandlingAnalyzerPlugin
       )
-  endif()
+    endif()
 endif()
 
 if (HAVE_CLANG_REPL_SUPPORT)
-  list(APPEND CLANG_TEST_DEPS
+    list(APPEND CLANG_TEST_DEPS
     clang-repl
     )
 endif()
@@ -229,10 +230,10 @@ set_target_properties(clang-test PROPERTIES FOLDER "Clang/Tests")
 # FIXME: This logic can be removed once all buildbots have moved
 # debuginfo-test from clang/test to llvm/projects or monorepo.
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/debuginfo-tests)
-  message(WARNING "Including debuginfo-tests in clang/test is deprecated.  Move to llvm/projects or use monorepo.")
-  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/debuginfo-tests/CMakeLists.txt)
-    add_subdirectory(debuginfo-tests)
-  endif()
+    message(WARNING "Including debuginfo-tests in clang/test is deprecated.  Move to llvm/projects or use monorepo.")
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/debuginfo-tests/CMakeLists.txt)
+        add_subdirectory(debuginfo-tests)
+    endif()
 endif()
 
 add_subdirectory(Analysis/LifetimeSafety)

@@ -32,6 +32,9 @@
 /* Default architecture for SystemZ. */
 #define CLANG_SYSTEMZ_DEFAULT_ARCH "${CLANG_SYSTEMZ_DEFAULT_ARCH}"
 
+/* Normalize the target used to find baremetal runtimes. */
+#cmakedefine01 CLANG_BAREMETAL_NORMALIZE_TARGET
+
 /* Multilib basename for libdir. */
 #define CLANG_INSTALL_LIBDIR_BASENAME "${CLANG_INSTALL_LIBDIR_BASENAME}"
 

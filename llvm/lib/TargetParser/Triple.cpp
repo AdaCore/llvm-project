@@ -299,6 +299,8 @@ StringRef Triple::getOSTypeName(OSType Kind) {
   case KFreeBSD: return "kfreebsd";
   case Linux: return "linux";
   case Lv2: return "lv2";
+  case Lynxos178:
+    return "lynxos178";
   case MacOSX: return "macosx";
   case Managarm:
     return "managarm";
@@ -314,6 +316,7 @@ StringRef Triple::getOSTypeName(OSType Kind) {
   case Serenity: return "serenity";
   case TvOS: return "tvos";
   case UEFI: return "uefi";
+  case VxWorks7r2: return "vxworks7r2";
   case WASI: return "wasi";
   case WatchOS: return "watchos";
   case Win32: return "windows";
@@ -717,6 +720,8 @@ static Triple::OSType parseOS(StringRef OSName) {
     .StartsWith("liteos", Triple::LiteOS)
     .StartsWith("serenity", Triple::Serenity)
     .StartsWith("vulkan", Triple::Vulkan)
+    .StartsWith("lynxos178", Triple::Lynxos178)
+    .StartsWith("vxworks7r2", Triple::VxWorks7r2)
     .Default(Triple::UnknownOS);
 }
 

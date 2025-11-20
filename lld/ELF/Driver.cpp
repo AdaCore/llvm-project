@@ -295,7 +295,7 @@ void LinkerDriver::addFile(StringRef path, bool withLOption) {
       } else if (magic == file_magic::bitcode)
         files.push_back(
             std::make_unique<BitcodeFile>(ctx, p.first, path, p.second, true));
-      else
+      else if (p.first.getBufferSize() != 0)
         Warn(ctx) << path << ": archive member '"
                   << p.first.getBufferIdentifier()
                   << "' is neither ET_REL nor LLVM bitcode";

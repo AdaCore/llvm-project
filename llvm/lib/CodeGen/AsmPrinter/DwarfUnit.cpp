@@ -1580,6 +1580,9 @@ void DwarfUnit::constructSubrangeDIE(DIE &DW_Subrange, const DISubrangeType *SR,
     if (auto *BV = dyn_cast_if_present<DIVariable *>(Bound)) {
       if (auto *VarDIE = getDIE(BV))
         addDIEEntry(DW_Subrange, Attr, *VarDIE);
+    } else if (auto *DT = dyn_cast_if_present<DIDerivedType *>(Bound)) {
+      if (auto *DTDIE = getDIE(DT))
+        addDIEEntry(DW_Subrange, Attr, *DTDIE);
     } else if (auto *BE = dyn_cast_if_present<DIExpression *>(Bound)) {
       DIELoc *Loc = new (DIEValueAllocator) DIELoc;
       DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
@@ -1886,7 +1889,10 @@ DIE &DwarfUnit::constructMemberDIE(DIE &Buffer, const DIDerivedType *DT) {
     bool IsBitfield = DT->isBitField();
 
     // Handle the size.
-    if (auto *Var = dyn_cast_or_null<DIVariable>(DT->getRawSizeInBits())) {
+    if (DT->getRawSizeInBits() == nullptr) {
+      // No size, just ignore.
+    } else if (auto *Var =
+                   dyn_cast_or_null<DIVariable>(DT->getRawSizeInBits())) {
       if (auto *VarDIE = getDIE(Var))
         addDIEEntry(MemberDie, dwarf::DW_AT_bit_size, *VarDIE);
     } else if (auto *Exp =

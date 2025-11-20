@@ -5699,7 +5699,7 @@ static void prepareDescriptorIndirectCall(SelectionDAG &DAG, SDValue &Callee,
 
   // If the function call has an explicit 'nest' parameter, it takes the
   // place of the environment pointer.
-  assert((!hasNest || !Subtarget.isAIXABI()) &&
+  assert((!hasNest || !Subtarget.isAIXABI() || Subtarget.isTargetLynx178()) &&
          "Nest parameter is not supported on AIX.");
   if (!hasNest) {
     SDValue EnvVal = DAG.getCopyToReg(Chain, dl, EnvPtrReg, LoadEnvPtr, Glue);
@@ -6866,7 +6866,7 @@ static bool CC_AIX(unsigned ValNo, MVT ValVT, MVT LocVT,
   if (ValVT == MVT::f128)
     report_fatal_error("f128 is unimplemented on AIX.");
 
-  if (ArgFlags.isNest())
+  if (ArgFlags.isNest() && !Subtarget.isTargetLynx178())
     report_fatal_error("Nest arguments are unimplemented.");
 
   static const MCPhysReg GPR_32[] = {// 32-bit registers.

@@ -18,6 +18,17 @@
 #include_next <stdint.h>
 #else
 
+// Lynx doesn't define macros for minimum-width integer constants in its
+// stdint.h.
+#if defined(__Lynx__) && _ARCH_PPC
+#define UINT16_C(c) (c##U)
+#define UINT32_C(c) (c##U)
+#define UINT64_C(c) (c##ULL)
+#define INT16_C(c) (c)
+#define INT32_C(c) (c)
+#define INT64_C(c) (c##LL)
+#endif
+
 /* If we're hosted, fall back to the system's stdint.h, which might have
  * additional definitions.
  */
