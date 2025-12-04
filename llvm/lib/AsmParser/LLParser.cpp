@@ -417,7 +417,8 @@ bool LLParser::validateEndOfModule(bool UpgradeDebugInfo) {
       N.second->resolveCycles();
   }
 
-  DISubprogram::cleanupRetainedNodes(std::exchange(NewDistinctSPs, {}));
+  DISubprogram::cleanupRetainedNodes(NewDistinctSPs);
+  NewDistinctSPs.clear();
 
   for (auto *Inst : InstsWithTBAATag) {
     MDNode *MD = Inst->getMetadata(LLVMContext::MD_tbaa);
