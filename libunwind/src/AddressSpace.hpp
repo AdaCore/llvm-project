@@ -114,6 +114,10 @@ extern char __exidx_end;
 #include <windows.h>
 #include <psapi.h>
 
+#if defined(PSAPI_VERSION) && PSAPI_VERSION == 1
+#pragma comment(lib, "psapi")
+#endif
+
 #elif defined(_LIBUNWIND_USE_DL_ITERATE_PHDR) ||                               \
       defined(_LIBUNWIND_USE_DL_UNWIND_FIND_EXIDX)
 
