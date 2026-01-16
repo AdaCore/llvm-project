@@ -204,6 +204,13 @@ if (WIN32)
   add_compile_flags_if_supported(-Wno-dll-attribute-on-redeclaration)
 endif()
 
+if (MINGW)
+  # Certain MinGW configurations require libunwind to depend on the psapi system
+  # library. In order to make the usual #pragma comment(lib, "psapi") work, we
+  # need to enable the Microsoft extensions in the compiler.
+  add_compile_flags_if_supported(-fms-extensions)
+endif()
+
 if (MIPS_FPABI_FPXX)
   add_compile_flags(-mfp64)
 endif()
