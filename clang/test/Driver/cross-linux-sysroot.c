@@ -3,19 +3,25 @@
 // REQUIRES: host=x86_64-{{.*}}, aarch64-registered-target
 
 // Native compilation shouldn't use ENV_PREFIX.
-// 
+//
 // RUN: ENV_PREFIX=/foo/bar %clang -### -target x86_64-linux-gnu %s 2>&1 | \
 // RUN:   FileCheck %s -check-prefix=NATIVE
 // NATIVE-NOT: /foo/bar
 
+// Compiling from x86_64 to x86 shouldn't be considered cross compilation.
+//
+// RUN: ENV_PREFIX=/foo/bar %clang -### -target i686-linux-gnu %s 2>&1 | \
+// RUN:   FileCheck %s -check-prefix=NATIVE32
+// NATIVE32-NOT: /foo/bar
+
 // Cross-compilation to bare metal shouldn't use ENV_PREFIX.
-// 
+//
 // RUN: ENV_PREFIX=/foo/bar %clang -### -target aarch64-none-elf %s 2>&1 | \
 // RUN:   FileCheck %s -check-prefix=CROSS_BARE
 // CROSS_BARE-NOT: /foo/bar
 
 // Cross-compilation to Linux should use ENV_PREFIX.
-// 
+//
 // RUN: ENV_PREFIX=/foo/bar %clang -### -target aarch64-linux-gnu %s 2>&1 | \
 // RUN:   FileCheck %s -check-prefix=CROSS_LINUX
 // CROSS_LINUX: "-cc1"
@@ -31,7 +37,7 @@
 
 // When both ENV_PREFIX and --sysroot are specified, ENV_PREFIX should be
 // ignored.
-// 
+//
 // RUN: ENV_PREFIX=/foo/bar %clang -### -target aarch64-linux-gnu --sysroot=/baz %s 2>&1 | \
 // RUN:   FileCheck %s -check-prefix=CROSS_LINUX_SYSROOT
 // CROSS_LINUX_SYSROOT: "-cc1"
