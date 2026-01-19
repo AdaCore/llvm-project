@@ -8,6 +8,12 @@
 // RUN:   FileCheck %s -check-prefix=NATIVE
 // NATIVE-NOT: /foo/bar
 
+// Compiling from x86_64 to x86 shouldn't be considered cross compilation.
+//
+// RUN: env ENV_PREFIX=/foo/bar %clang -### -target i686-linux-gnu %s 2>&1 | \
+// RUN:   FileCheck %s -check-prefix=NATIVE32
+// NATIVE32-NOT: /foo/bar
+
 // Cross-compilation to bare metal shouldn't use ENV_PREFIX.
 //
 // RUN: env ENV_PREFIX=/foo/bar %clang -### -target aarch64-none-elf %s 2>&1 | \
