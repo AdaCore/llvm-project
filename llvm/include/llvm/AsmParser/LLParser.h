@@ -177,6 +177,10 @@ namespace llvm {
     // Map of module ID to path.
     std::map<unsigned, StringRef> ModuleIdMap;
 
+    /// retainedNodes of these subprograms should be cleaned up from incorrectly
+    /// scoped local types.
+    SmallVector<DISubprogram *> NewDistinctSPs;
+
     /// Only the llvm-as tool may set this to false to bypass
     /// UpgradeDebuginfo so it can generate broken bitcode.
     bool UpgradeDebugInfo;

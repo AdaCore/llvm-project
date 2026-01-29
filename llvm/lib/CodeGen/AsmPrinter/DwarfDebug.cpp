@@ -1221,12 +1221,13 @@ void DwarfDebug::beginModule(Module *M) {
         CU.getOrCreateGlobalVariableDIE(GV, sortGlobalExprs(GVMap[GV]));
     }
 
-    for (auto *Ty : CUNode->getEnumTypes())
+    for (auto *Ty : CUNode->getEnumTypes()) {
+      assert(!isa_and_nonnull<DILocalScope>(Ty->getScope()) &&
+             "Unexpected function-local entity in 'enums' CU field.");
       CU.getOrCreateTypeDIE(cast<DIType>(Ty));
+    }
 
     for (auto *Ty : CUNode->getRetainedTypes()) {
-      // The retained types array by design contains pointers to
-      // MDNodes rather than DIRefs. Unique them here.
       if (DIType *RT = dyn_cast<DIType>(Ty))
         // There is no point in force-emitting a forward declaration.
         CU.getOrCreateTypeDIE(RT);
@@ -1427,9 +1428,13 @@ void DwarfDebug::endModule() {
              "Unexpected function-local entity in 'imports' CU field.");
       CU->getOrCreateImportedEntityDIE(IE);
     }
+
+    // Emit function-local entities.
     for (const auto *D : CU->getDeferredLocalDecls()) {
       if (auto *IE = dyn_cast<DIImportedEntity>(D))
         CU->getOrCreateImportedEntityDIE(IE);
+      else if (auto *Ty = dyn_cast<DIType>(D))
+        CU->getOrCreateTypeDIE(Ty);
       else
         llvm_unreachable("Unexpected local retained node!");
     }
@@ -1520,18 +1525,8 @@ void DwarfDebug::ensureAbstractEntityIsCreatedIfScoped(DwarfCompileUnit &CU,
 }
 
 static const DILocalScope *getRetainedNodeScope(const MDNode *N) {
-  const DIScope *S;
-  if (const auto *LV = dyn_cast<DILocalVariable>(N))
-    S = LV->getScope();
-  else if (const auto *L = dyn_cast<DILabel>(N))
-    S = L->getScope();
-  else if (const auto *IE = dyn_cast<DIImportedEntity>(N))
-    S = IE->getScope();
-  else
-    llvm_unreachable("Unexpected retained node!");
-
   // Ensure the scope is not a DILexicalBlockFile.
-  return cast<DILocalScope>(S)->getNonLexicalBlockFileScope();
+  return DISubprogram::getRetainedNodeScope(N)->getNonLexicalBlockFileScope();
 }
 
 // Collect variable information from side table maintained by MF.
