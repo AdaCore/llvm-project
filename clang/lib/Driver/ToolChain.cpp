@@ -1182,6 +1182,9 @@ bool ToolChain::isCrossCompiling() const {
   case llvm::Triple::thumbeb:
     return getArch() != llvm::Triple::arm && getArch() != llvm::Triple::thumb &&
            getArch() != llvm::Triple::armeb && getArch() != llvm::Triple::thumbeb;
+  // Building for x86 on x86_64 isn't considered cross compilation here.
+  case llvm::Triple::x86_64:
+    return getArch() != llvm::Triple::x86_64 && getArch() != llvm::Triple::x86;
   default:
     return HostTriple.getArch() != getArch();
   }
