@@ -62,6 +62,10 @@ void DIEDwarfExpression::emitBaseTypeRef(uint64_t Idx) {
   CU.addBaseTypeRef(getActiveDIE(), Idx);
 }
 
+void DIEDwarfExpression::emitDIERef(DIE &Ref) {
+  CU.addDIEEntry(getActiveDIE(), dwarf::DW_FORM_ref_addr, Ref);
+}
+
 void DIEDwarfExpression::enableTemporaryBuffer() {
   assert(!IsBuffering && "Already buffering?");
   IsBuffering = true;
@@ -390,6 +394,10 @@ void DwarfUnit::addDIEEntry(DIE &Die, dwarf::Attribute Attribute, DIE &Entry) {
   addDIEEntry(Die, Attribute, DIEEntry(Entry));
 }
 
+void DwarfUnit::addDIEEntry(DIEValueList &Die, dwarf::Form Form, DIE &Entry) {
+  addAttribute(Die, (dwarf::Attribute)0, Form, DIEEntry(Entry));
+}
+
 void DwarfUnit::addDIETypeSignature(DIE &Die, uint64_t Signature) {
   // Flag the type unit reference as a declaration so that if it contains
   // members (implicit special members, static data member definitions, member
@@ -440,6 +448,39 @@ void DwarfUnit::addBlock(DIE &Die, dwarf::Attribute Attribute, dwarf::Form Form,
 void DwarfUnit::addBlock(DIE &Die, dwarf::Attribute Attribute,
                          DIEBlock *Block) {
   addBlock(Die, Attribute, Block->BestForm(), Block);
+}
+
+void DwarfUnit::addBlock(DIE &Die, dwarf::Attribute Attribute,
+                         DIExpression *Expr) {
+  DIELoc *Loc = new (DIEValueAllocator) DIELoc;
+  DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
+  DwarfExpr.setMemoryLocationKind();
+  DwarfExpr.addExpression(Expr);
+  addBlock(Die, Attribute, DwarfExpr.finalize());
+}
+
+void DwarfUnit::addBlock(DIE &Die, dwarf::Attribute Attribute,
+                         DIVariableExpression *Expr) {
+  // Emitting a DIVariableExpression normally involves an extension
+  // operator, so just drop this in strict mode.
+  // See http://dwarfstd.org/ShowIssue.php?issue=161109.2.
+  if (Asm->TM.Options.DebugStrictDwarf)
+    return;
+
+  DIELoc *Loc = new (DIEValueAllocator) DIELoc;
+  DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
+  DwarfExpr.setMemoryLocationKind();
+  DINodeArray Vars = Expr->getVariableArray();
+  DwarfExpr.addExpression(
+      Expr->getExpression(),
+      [&](unsigned Idx, DIExpressionCursor &Cursor) -> bool {
+        if (auto *VarDie = getDIE(Vars[Idx])) {
+          DwarfExpr.addVariableReference(*VarDie);
+          return true;
+        }
+        return false;
+      });
+  addBlock(Die, Attribute, DwarfExpr.finalize());
 }
 
 void DwarfUnit::addSourceLine(DIE &Die, unsigned Line, unsigned Column,
@@ -801,27 +842,14 @@ void DwarfUnit::constructTypeDIE(DIE &Buffer, const DIStringType *STy) {
     if (auto *VarDIE = getDIE(Var))
       addDIEEntry(Buffer, dwarf::DW_AT_string_length, *VarDIE);
   } else if (DIExpression *Expr = STy->getStringLengthExp()) {
-    DIELoc *Loc = new (DIEValueAllocator) DIELoc;
-    DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
-    // This is to describe the memory location of the
-    // length of a Fortran deferred length string, so
-    // lock it down as such.
-    DwarfExpr.setMemoryLocationKind();
-    DwarfExpr.addExpression(Expr);
-    addBlock(Buffer, dwarf::DW_AT_string_length, DwarfExpr.finalize());
+    addBlock(Buffer, dwarf::DW_AT_string_length, Expr);
   } else {
     uint64_t Size = STy->getSizeInBits() >> 3;
     addUInt(Buffer, dwarf::DW_AT_byte_size, std::nullopt, Size);
   }
 
   if (DIExpression *Expr = STy->getStringLocationExp()) {
-    DIELoc *Loc = new (DIEValueAllocator) DIELoc;
-    DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
-    // This is to describe the memory location of the
-    // string, so lock it down as such.
-    DwarfExpr.setMemoryLocationKind();
-    DwarfExpr.addExpression(Expr);
-    addBlock(Buffer, dwarf::DW_AT_data_location, DwarfExpr.finalize());
+    addBlock(Buffer, dwarf::DW_AT_data_location, Expr);
   }
 
   if (STy->getEncoding()) {
@@ -1184,11 +1212,10 @@ void DwarfUnit::constructTypeDIE(DIE &Buffer, const DICompositeType *CTy) {
         addDIEEntry(Buffer, dwarf::DW_AT_bit_size, *VarDIE);
     } else if (auto *Exp =
                    dyn_cast_or_null<DIExpression>(CTy->getRawSizeInBits())) {
-      DIELoc *Loc = new (DIEValueAllocator) DIELoc;
-      DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
-      DwarfExpr.setMemoryLocationKind();
-      DwarfExpr.addExpression(Exp);
-      addBlock(Buffer, dwarf::DW_AT_bit_size, DwarfExpr.finalize());
+      addBlock(Buffer, dwarf::DW_AT_bit_size, Exp);
+    } else if (auto *VarExp = dyn_cast_or_null<DIVariableExpression>(
+                   CTy->getRawSizeInBits())) {
+      addBlock(Buffer, dwarf::DW_AT_bit_size, VarExp);
     } else {
       uint64_t Size = CTy->getSizeInBits() >> 3;
       // Add size if non-zero (derived types might be zero-sized.)
@@ -1584,11 +1611,7 @@ void DwarfUnit::constructSubrangeDIE(DIE &DW_Subrange, const DISubrangeType *SR,
       if (auto *DTDIE = getDIE(DT))
         addDIEEntry(DW_Subrange, Attr, *DTDIE);
     } else if (auto *BE = dyn_cast_if_present<DIExpression *>(Bound)) {
-      DIELoc *Loc = new (DIEValueAllocator) DIELoc;
-      DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
-      DwarfExpr.setMemoryLocationKind();
-      DwarfExpr.addExpression(BE);
-      addBlock(DW_Subrange, Attr, DwarfExpr.finalize());
+      addBlock(DW_Subrange, Attr, BE);
     } else if (auto *BI = dyn_cast_if_present<ConstantInt *>(Bound)) {
       if (Attr == dwarf::DW_AT_GNU_bias) {
         if (BI->getSExtValue() != 0)
@@ -1626,11 +1649,7 @@ void DwarfUnit::constructSubrangeDIE(DIE &Buffer, const DISubrange *SR) {
       if (auto *VarDIE = getDIE(BV))
         addDIEEntry(DW_Subrange, Attr, *VarDIE);
     } else if (auto *BE = dyn_cast_if_present<DIExpression *>(Bound)) {
-      DIELoc *Loc = new (DIEValueAllocator) DIELoc;
-      DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
-      DwarfExpr.setMemoryLocationKind();
-      DwarfExpr.addExpression(BE);
-      addBlock(DW_Subrange, Attr, DwarfExpr.finalize());
+      addBlock(DW_Subrange, Attr, BE);
     } else if (auto *BI = dyn_cast_if_present<ConstantInt *>(Bound)) {
       if (Attr == dwarf::DW_AT_count) {
         if (BI->getSExtValue() != -1)
@@ -1676,11 +1695,7 @@ void DwarfUnit::constructGenericSubrangeDIE(DIE &Buffer,
           addSInt(DwGenericSubrange, Attr, dwarf::DW_FORM_sdata,
                   BE->getElement(1));
       } else {
-        DIELoc *Loc = new (DIEValueAllocator) DIELoc;
-        DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
-        DwarfExpr.setMemoryLocationKind();
-        DwarfExpr.addExpression(BE);
-        addBlock(DwGenericSubrange, Attr, DwarfExpr.finalize());
+        addBlock(DwGenericSubrange, Attr, BE);
       }
     }
   };
@@ -1748,44 +1763,28 @@ void DwarfUnit::constructArrayTypeDIE(DIE &Buffer, const DICompositeType *CTy) {
     if (auto *VarDIE = getDIE(Var))
       addDIEEntry(Buffer, dwarf::DW_AT_data_location, *VarDIE);
   } else if (DIExpression *Expr = CTy->getDataLocationExp()) {
-    DIELoc *Loc = new (DIEValueAllocator) DIELoc;
-    DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
-    DwarfExpr.setMemoryLocationKind();
-    DwarfExpr.addExpression(Expr);
-    addBlock(Buffer, dwarf::DW_AT_data_location, DwarfExpr.finalize());
+    addBlock(Buffer, dwarf::DW_AT_data_location, Expr);
   }
 
   if (DIVariable *Var = CTy->getAssociated()) {
     if (auto *VarDIE = getDIE(Var))
       addDIEEntry(Buffer, dwarf::DW_AT_associated, *VarDIE);
   } else if (DIExpression *Expr = CTy->getAssociatedExp()) {
-    DIELoc *Loc = new (DIEValueAllocator) DIELoc;
-    DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
-    DwarfExpr.setMemoryLocationKind();
-    DwarfExpr.addExpression(Expr);
-    addBlock(Buffer, dwarf::DW_AT_associated, DwarfExpr.finalize());
+    addBlock(Buffer, dwarf::DW_AT_associated, Expr);
   }
 
   if (DIVariable *Var = CTy->getAllocated()) {
     if (auto *VarDIE = getDIE(Var))
       addDIEEntry(Buffer, dwarf::DW_AT_allocated, *VarDIE);
   } else if (DIExpression *Expr = CTy->getAllocatedExp()) {
-    DIELoc *Loc = new (DIEValueAllocator) DIELoc;
-    DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
-    DwarfExpr.setMemoryLocationKind();
-    DwarfExpr.addExpression(Expr);
-    addBlock(Buffer, dwarf::DW_AT_allocated, DwarfExpr.finalize());
+    addBlock(Buffer, dwarf::DW_AT_allocated, Expr);
   }
 
   if (auto *RankConst = CTy->getRankConst()) {
     addSInt(Buffer, dwarf::DW_AT_rank, dwarf::DW_FORM_sdata,
             RankConst->getSExtValue());
   } else if (auto *RankExpr = CTy->getRankExp()) {
-    DIELoc *Loc = new (DIEValueAllocator) DIELoc;
-    DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
-    DwarfExpr.setMemoryLocationKind();
-    DwarfExpr.addExpression(RankExpr);
-    addBlock(Buffer, dwarf::DW_AT_rank, DwarfExpr.finalize());
+    addBlock(Buffer, dwarf::DW_AT_rank, RankExpr);
   }
 
   if (auto *BitStride = CTy->getBitStrideConst()) {
@@ -1897,11 +1896,10 @@ DIE &DwarfUnit::constructMemberDIE(DIE &Buffer, const DIDerivedType *DT) {
         addDIEEntry(MemberDie, dwarf::DW_AT_bit_size, *VarDIE);
     } else if (auto *Exp =
                    dyn_cast_or_null<DIExpression>(DT->getRawSizeInBits())) {
-      DIELoc *Loc = new (DIEValueAllocator) DIELoc;
-      DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
-      DwarfExpr.setMemoryLocationKind();
-      DwarfExpr.addExpression(Exp);
-      addBlock(MemberDie, dwarf::DW_AT_bit_size, DwarfExpr.finalize());
+      addBlock(MemberDie, dwarf::DW_AT_bit_size, Exp);
+    } else if (auto *VarExp = dyn_cast_or_null<DIVariableExpression>(
+                   DT->getRawSizeInBits())) {
+      addBlock(MemberDie, dwarf::DW_AT_bit_size, VarExp);
     } else {
       Size = DT->getSizeInBits();
       FieldSize = DD->getBaseTypeSize(DT);
@@ -1925,12 +1923,11 @@ DIE &DwarfUnit::constructMemberDIE(DIE &Buffer, const DIDerivedType *DT) {
     } else if (auto *Expr =
                    dyn_cast_or_null<DIExpression>(DT->getRawOffsetInBits())) {
       if (!Asm->TM.Options.DebugStrictDwarf || DD->getDwarfVersion() >= 6) {
-        DIELoc *Loc = new (DIEValueAllocator) DIELoc;
-        DIEDwarfExpression DwarfExpr(*Asm, getCU(), *Loc);
-        DwarfExpr.setMemoryLocationKind();
-        DwarfExpr.addExpression(Expr);
-        addBlock(MemberDie, dwarf::DW_AT_data_bit_offset, DwarfExpr.finalize());
+        addBlock(MemberDie, dwarf::DW_AT_data_bit_offset, Expr);
       }
+    } else if (auto *VarExp = dyn_cast_or_null<DIVariableExpression>(
+                   DT->getRawOffsetInBits())) {
+      addBlock(MemberDie, dwarf::DW_AT_data_bit_offset, VarExp);
     } else {
       uint32_t AlignInBytes = DT->getAlignInBytes();
       uint64_t OffsetInBytes;

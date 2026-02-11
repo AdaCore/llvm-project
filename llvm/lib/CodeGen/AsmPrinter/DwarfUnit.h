@@ -204,6 +204,9 @@ public:
   /// Add a DIE attribute data and value.
   void addDIEEntry(DIE &Die, dwarf::Attribute Attribute, DIEEntry Entry);
 
+  /// Add a reference to Entry using the indicated form.
+  void addDIEEntry(DIEValueList &Die, dwarf::Form Form, DIE &Entry);
+
   /// Add a type's DW_AT_signature and set the  declaration flag.
   void addDIETypeSignature(DIE &Die, uint64_t Signature);
 
@@ -214,6 +217,11 @@ public:
   void addBlock(DIE &Die, dwarf::Attribute Attribute, DIEBlock *Block);
   void addBlock(DIE &Die, dwarf::Attribute Attribute, dwarf::Form Form,
                 DIEBlock *Block);
+
+  /// Add an expression as block data.
+  void addBlock(DIE &Die, dwarf::Attribute Attribute, DIExpression *Expr);
+  void addBlock(DIE &Die, dwarf::Attribute Attribute,
+                DIVariableExpression *Expr);
 
   /// Add location information to specified debug information entry.
   void addSourceLine(DIE &Die, unsigned Line, unsigned Column,
