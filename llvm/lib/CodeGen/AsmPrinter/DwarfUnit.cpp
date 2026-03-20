@@ -1789,6 +1789,12 @@ void DwarfUnit::constructArrayTypeDIE(DIE &Buffer, const DICompositeType *CTy) {
 
   if (auto *BitStride = CTy->getBitStrideConst()) {
     addUInt(Buffer, dwarf::DW_AT_bit_stride, {}, BitStride->getZExtValue());
+  } else if (auto *Exp =
+             dyn_cast_or_null<DIExpression>(CTy->getRawBitStride())) {
+      addBlock(Buffer, dwarf::DW_AT_bit_stride, Exp);
+  } else if (auto *VarExp = dyn_cast_or_null<DIVariableExpression>(
+                   CTy->getRawBitStride())) {
+    addBlock(Buffer, dwarf::DW_AT_bit_stride, VarExp);
   }
 
   // Emit the element type.

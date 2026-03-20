@@ -7,6 +7,9 @@
 ; CHECK-NEXT: DW_AT_name [DW_FORM_strp] {{.*"pck__my_rec".*}}
 ; CHECK-NEXT: DW_AT_bit_size {{.*DW_OP_GNU_variable_value}}
 
+; CHECK: DW_TAG_array_type
+; CHECK-NEXT: DW_AT_bit_stride {{.*DW_OP_GNU_variable_value}}
+
 ; ModuleID = 'foo.adb'
 source_filename = "foo.adb"
 
@@ -39,7 +42,7 @@ source_filename = "foo.adb"
 !21 = !{!22, !23}
 !22 = !DIDerivedType(tag: DW_TAG_member, name: "x", file: !7, line: 27, baseType: !8, size: 32, align: 32)
 !23 = !DIDerivedType(tag: DW_TAG_member, name: "a", file: !7, line: 28, baseType: !24, offset: 32)
-!24 = !DICompositeType(tag: DW_TAG_array_type, name: "pck__my_array", file: !7, line: 24, baseType: !25, align: 32, elements: !27)
+!24 = !DICompositeType(tag: DW_TAG_array_type, name: "pck__my_array", file: !7, line: 24, baseType: !25, align: 32, elements: !27, bitStride: !19)
 !25 = !DISubrangeType(name: "natural", file: !26, line: 1, size: 32, align: 32, baseType: !8, lowerBound: i64 0, upperBound: i64 2147483647)
 !26 = !DIFile(filename: "system.ads", directory: "")
 !27 = !{!28}
