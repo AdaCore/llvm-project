@@ -1922,6 +1922,9 @@ void ModuleBitcodeWriter::writeDIBasicType(const DIBasicType *N,
   Record.push_back(N->getEncoding());
   Record.push_back(N->getFlags());
   Record.push_back(N->getNumExtraInhabitants());
+  Record.push_back(VE.getMetadataOrNullID(N->getFile()));
+  Record.push_back(N->getLine());
+  Record.push_back(VE.getMetadataOrNullID(N->getScope()));
 
   Stream.EmitRecord(bitc::METADATA_BASIC_TYPE, Record, Abbrev);
   Record.clear();
@@ -1952,6 +1955,10 @@ void ModuleBitcodeWriter::writeDIFixedPointType(
 
   WriteWideInt(N->getNumeratorRaw());
   WriteWideInt(N->getDenominatorRaw());
+
+  Record.push_back(VE.getMetadataOrNullID(N->getFile()));
+  Record.push_back(N->getLine());
+  Record.push_back(VE.getMetadataOrNullID(N->getScope()));
 
   Stream.EmitRecord(bitc::METADATA_FIXED_POINT_TYPE, Record, Abbrev);
   Record.clear();

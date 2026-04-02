@@ -1585,7 +1585,7 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     break;
   }
   case bitc::METADATA_BASIC_TYPE: {
-    if (Record.size() < 6 || Record.size() > 8)
+    if (Record.size() < 6 || Record.size() > 11)
       return error("Invalid record");
 
     IsDistinct = Record[0] & 1;
@@ -1595,12 +1595,22 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
                                 : DINode::FlagZero;
     uint32_t NumExtraInhabitants = (Record.size() > 7) ? Record[7] : 0;
 
+    Metadata *File = nullptr;
+    unsigned LineNo = 0;
+    Metadata *Scope = nullptr;
+    if (Record.size() > 8) {
+      File = getMDOrNull(Record[8]);
+      LineNo = Record[9];
+      Scope = getMDOrNull(Record[10]);
+    }
+
     Metadata *SizeInBits = getMetadataOrConstant(SizeIsMetadata, Record[3]);
 
     MetadataList.assignValue(
         GET_OR_DISTINCT(DIBasicType,
-                        (Context, Record[1], getMDString(Record[2]), SizeInBits,
-                         Record[4], Record[5], NumExtraInhabitants, Flags)),
+                        (Context, Record[1], getMDString(Record[2]), File,
+                         LineNo, Scope, SizeInBits, Record[4], Record[5],
+                         NumExtraInhabitants, Flags)),
         NextMetadataNo);
     NextMetadataNo++;
     break;
@@ -1629,14 +1639,22 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     APInt Numerator = ReadWideInt();
     APInt Denominator = ReadWideInt();
 
-    if (Offset != Record.size())
+    Metadata *File = nullptr;
+    unsigned LineNo = 0;
+    Metadata *Scope = nullptr;
+
+    if (Offset + 3 == Record.size()) {
+      File = getMDOrNull(Record[Offset]);
+      LineNo = Record[Offset + 1];
+      Scope = getMDOrNull(Record[Offset + 2]);
+    } else if (Offset != Record.size())
       return error("Invalid record");
 
     MetadataList.assignValue(
         GET_OR_DISTINCT(DIFixedPointType,
-                        (Context, Record[1], getMDString(Record[2]), SizeInBits,
-                         Record[4], Record[5], Flags, Record[7], Record[8],
-                         Numerator, Denominator)),
+                        (Context, Record[1], getMDString(Record[2]), File,
+                         LineNo, Scope, SizeInBits, Record[4], Record[5], Flags,
+                         Record[7], Record[8], Numerator, Denominator)),
         NextMetadataNo);
     NextMetadataNo++;
     break;
