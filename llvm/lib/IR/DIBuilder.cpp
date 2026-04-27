@@ -275,39 +275,55 @@ DIBasicType *DIBuilder::createBasicType(StringRef Name, DIFile *File,
                                         uint64_t SizeInBits, unsigned Encoding,
                                         DINode::DIFlags Flags,
                                         uint32_t NumExtraInhabitants) {
-  return DIBasicType::get(VMContext, dwarf::DW_TAG_base_type, Name, File,
+  auto *R = DIBasicType::get(VMContext, dwarf::DW_TAG_base_type, Name, File,
                           LineNo, Context, SizeInBits, 0, Encoding,
                           NumExtraInhabitants, Flags);
+  if (isa_and_nonnull<DILocalScope>(Context))
+    getSubprogramNodesTrackingVector(Context).emplace_back(R);
+  trackIfUnresolved(R);
+  return R;
 }
 
 DIFixedPointType *DIBuilder::createBinaryFixedPointType(
     StringRef Name, DIFile *File, unsigned LineNo, DIScope *Context,
     uint64_t SizeInBits, uint32_t AlignInBits, unsigned Encoding,
     DINode::DIFlags Flags, int Factor) {
-  return DIFixedPointType::get(
+  auto *R = DIFixedPointType::get(
       VMContext, dwarf::DW_TAG_base_type, Name, File, LineNo, Context,
       SizeInBits, AlignInBits, Encoding, Flags,
       DIFixedPointType::FixedPointBinary, Factor, APInt(), APInt());
+  if (isa_and_nonnull<DILocalScope>(Context))
+    getSubprogramNodesTrackingVector(Context).emplace_back(R);
+  trackIfUnresolved(R);
+  return R;
 }
 
 DIFixedPointType *DIBuilder::createDecimalFixedPointType(
     StringRef Name, DIFile *File, unsigned LineNo, DIScope *Context,
     uint64_t SizeInBits, uint32_t AlignInBits, unsigned Encoding,
     DINode::DIFlags Flags, int Factor) {
-  return DIFixedPointType::get(
+  auto *R = DIFixedPointType::get(
       VMContext, dwarf::DW_TAG_base_type, Name, File, LineNo, Context,
       SizeInBits, AlignInBits, Encoding, Flags,
       DIFixedPointType::FixedPointDecimal, Factor, APInt(), APInt());
+  if (isa_and_nonnull<DILocalScope>(Context))
+    getSubprogramNodesTrackingVector(Context).emplace_back(R);
+  trackIfUnresolved(R);
+  return R;
 }
 
 DIFixedPointType *DIBuilder::createRationalFixedPointType(
     StringRef Name, DIFile *File, unsigned LineNo, DIScope *Context,
     uint64_t SizeInBits, uint32_t AlignInBits, unsigned Encoding,
     DINode::DIFlags Flags, APInt Numerator, APInt Denominator) {
-  return DIFixedPointType::get(
+  auto *R = DIFixedPointType::get(
       VMContext, dwarf::DW_TAG_base_type, Name, File, LineNo, Context,
       SizeInBits, AlignInBits, Encoding, Flags,
       DIFixedPointType::FixedPointRational, 0, Numerator, Denominator);
+  if (isa_and_nonnull<DILocalScope>(Context))
+    getSubprogramNodesTrackingVector(Context).emplace_back(R);
+  trackIfUnresolved(R);
+  return R;
 }
 
 DIStringType *DIBuilder::createStringType(StringRef Name, uint64_t SizeInBits) {
