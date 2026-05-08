@@ -1485,7 +1485,7 @@ inline bool operator!=(DIDerivedType::PtrAuthData Lhs,
 class DISubrangeType : public DIType {
 public:
   typedef PointerUnion<ConstantInt *, DIVariable *, DIExpression *,
-                       DIDerivedType *>
+                       DIDerivedType *, DIVariableExpression *>
       BoundType;
 
 private:
