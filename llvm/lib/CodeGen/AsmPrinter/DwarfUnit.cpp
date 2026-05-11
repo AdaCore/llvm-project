@@ -1612,6 +1612,8 @@ void DwarfUnit::constructSubrangeDIE(DIE &DW_Subrange, const DISubrangeType *SR,
         addDIEEntry(DW_Subrange, Attr, *DTDIE);
     } else if (auto *BE = dyn_cast_if_present<DIExpression *>(Bound)) {
       addBlock(DW_Subrange, Attr, BE);
+    } else if (auto *VE = dyn_cast_if_present<DIVariableExpression *>(Bound)) {
+      addBlock(DW_Subrange, Attr, VE);
     } else if (auto *BI = dyn_cast_if_present<ConstantInt *>(Bound)) {
       if (Attr == dwarf::DW_AT_GNU_bias) {
         if (BI->getSExtValue() != 0)

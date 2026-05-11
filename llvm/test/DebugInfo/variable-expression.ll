@@ -46,4 +46,4 @@ source_filename = "foo.adb"
 !25 = !DISubrangeType(name: "natural", file: !26, line: 1, size: 32, align: 32, baseType: !8, lowerBound: i64 0, upperBound: i64 2147483647)
 !26 = !DIFile(filename: "system.ads", directory: "")
 !27 = !{!28}
-!28 = !DISubrangeType(baseType: !8, lowerBound: i64 1, upperBound: !6)
+!28 = !DISubrangeType(baseType: !8, lowerBound: i64 1, upperBound: !19)
