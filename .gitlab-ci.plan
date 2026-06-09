@@ -1,0 +1,13 @@
+def _install_prebuilt_components():
+    anod_install("libclang")
+    anod_install("clang")
+
+
+def test_llvm():
+    _install_prebuilt_components()
+    anod_test("lit-testsuite-llvm")
+
+
+def test_clang():
+    _install_prebuilt_components()
+    anod_test("lit-testsuite-clang")
