@@ -204,6 +204,8 @@ void __clear_cache(void *start, void *end) {
   sysarch(RISCV_SYNC_ICACHE, &arg);
 #elif defined(__ve__)
   __asm__ volatile("fencec 2");
+#elif (defined(__riscv) && __SIZEOF_POINTER__ >= 8) && defined (__ELF__)
+  __asm__ __volatile__ ("fence.i" : : : "memory");
 #else
 #if __APPLE__
   // On Darwin, sys_icache_invalidate() provides this functionality
