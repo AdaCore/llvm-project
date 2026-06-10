@@ -221,6 +221,8 @@ void __clear_cache(void *start, void *end) {
 
   // Instruction sync barrier ensures subsequent fetches see the new code.
   __asm__ volatile("isync");
+#elif (defined(__riscv) && __SIZEOF_POINTER__ >= 8) && defined (__ELF__)
+  __asm__ __volatile__ ("fence.i" : : : "memory");
 #else
 #if __APPLE__
   // On Darwin, sys_icache_invalidate() provides this functionality
