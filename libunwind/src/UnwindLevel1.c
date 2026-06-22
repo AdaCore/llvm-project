@@ -107,6 +107,25 @@ static _Unwind_Personality_Fn get_handler_function(unw_proc_info_t *frameInfo) {
   return handler;
 }
 
+static __attribute__((noinline)) void
+unwind_trace(const char *caller, unw_cursor_t *cursor,
+             unw_proc_info_t *frameInfo, _Unwind_Exception *exception_object) {
+  char functionBuf[512];
+  const char *functionName = functionBuf;
+  unw_word_t offset;
+  if ((__unw_get_proc_name(cursor, functionBuf, sizeof(functionBuf), &offset) !=
+       UNW_ESUCCESS) ||
+      (frameInfo->start_ip + offset > frameInfo->end_ip))
+    functionName = ".anonymous.";
+  unw_word_t pc;
+  __unw_get_reg(cursor, UNW_REG_IP, &pc);
+  _LIBUNWIND_TRACE_UNWINDING(
+      "%s(ex_obj=%p): pc=0x%" PRIxPTR ", start_ip=0x%" PRIxPTR
+      ", func=%s, lsda=0x%" PRIxPTR ", personality=0x%" PRIxPTR "",
+      caller, (void *)exception_object, pc, frameInfo->start_ip, functionName,
+      frameInfo->lsda, frameInfo->handler);
+}
+
 static _Unwind_Reason_Code
 unwind_phase1(unw_context_t *uc, unw_cursor_t *cursor, _Unwind_Exception *exception_object) {
   __unw_init_local(cursor, uc);
@@ -144,20 +163,7 @@ unwind_phase1(unw_context_t *uc, unw_cursor_t *cursor, _Unwind_Exception *except
 #ifndef NDEBUG
     // When tracing, print state information.
     if (_LIBUNWIND_TRACING_UNWINDING) {
-      char functionBuf[512];
-      const char *functionName = functionBuf;
-      unw_word_t offset;
-      if ((__unw_get_proc_name(cursor, functionBuf, sizeof(functionBuf),
-                               &offset) != UNW_ESUCCESS) ||
-          (frameInfo.start_ip + offset > frameInfo.end_ip))
-        functionName = ".anonymous.";
-      unw_word_t pc;
-      __unw_get_reg(cursor, UNW_REG_IP, &pc);
-      _LIBUNWIND_TRACE_UNWINDING(
-          "unwind_phase1(ex_obj=%p): pc=0x%" PRIxPTR ", start_ip=0x%" PRIxPTR
-          ", func=%s, lsda=0x%" PRIxPTR ", personality=0x%" PRIxPTR "",
-          (void *)exception_object, pc, frameInfo.start_ip, functionName,
-          frameInfo.lsda, frameInfo.handler);
+      unwind_trace(__func__, cursor, &frameInfo, exception_object);
     }
 #endif
 
@@ -260,19 +266,7 @@ unwind_phase2(unw_context_t *uc, unw_cursor_t *cursor,
 #ifndef NDEBUG
     // When tracing, print state information.
     if (_LIBUNWIND_TRACING_UNWINDING) {
-      char functionBuf[512];
-      const char *functionName = functionBuf;
-      unw_word_t offset;
-      if ((__unw_get_proc_name(cursor, functionBuf, sizeof(functionBuf),
-                               &offset) != UNW_ESUCCESS) ||
-          (frameInfo.start_ip + offset > frameInfo.end_ip))
-        functionName = ".anonymous.";
-      _LIBUNWIND_TRACE_UNWINDING("unwind_phase2(ex_obj=%p): start_ip=0x%" PRIxPTR
-                                 ", func=%s, sp=0x%" PRIxPTR ", lsda=0x%" PRIxPTR
-                                 ", personality=0x%" PRIxPTR,
-                                 (void *)exception_object, frameInfo.start_ip,
-                                 functionName, sp, frameInfo.lsda,
-                                 frameInfo.handler);
+      unwind_trace(__func__, cursor, &frameInfo, exception_object);
     }
 #endif
 
@@ -378,18 +372,7 @@ unwind_phase2_forced(unw_context_t *uc, unw_cursor_t *cursor,
 #ifndef NDEBUG
     // When tracing, print state information.
     if (_LIBUNWIND_TRACING_UNWINDING) {
-      char functionBuf[512];
-      const char *functionName = functionBuf;
-      unw_word_t offset;
-      if ((__unw_get_proc_name(cursor, functionBuf, sizeof(functionBuf),
-                               &offset) != UNW_ESUCCESS) ||
-          (frameInfo.start_ip + offset > frameInfo.end_ip))
-        functionName = ".anonymous.";
-      _LIBUNWIND_TRACE_UNWINDING(
-          "unwind_phase2_forced(ex_obj=%p): start_ip=0x%" PRIxPTR
-          ", func=%s, lsda=0x%" PRIxPTR ", personality=0x%" PRIxPTR,
-          (void *)exception_object, frameInfo.start_ip, functionName,
-          frameInfo.lsda, frameInfo.handler);
+      unwind_trace(__func__, cursor, &frameInfo, exception_object);
     }
 #endif
 
