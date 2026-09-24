@@ -1,0 +1,23 @@
+stages:
+  - check
+  - build
+  - test
+
+include:
+  - component: $CI_SERVER_FQDN/eng/gitlab-templates/check-issue@~latest
+
+  - component: $CI_SERVER_FQDN/eng/gitlab-templates/build@~latest
+    inputs:
+      anod-args: build clang
+      cpus: 16
+      save-component: true
+
+  - component: $CI_SERVER_FQDN/eng/gitlab-templates/test@~latest
+    inputs:
+      job-name: test-llvm
+      anod-args: run test_llvm
+
+  - component: $CI_SERVER_FQDN/eng/gitlab-templates/test@~latest
+    inputs:
+      job-name: test-clang
+      anod-args: run test_clang

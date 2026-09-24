@@ -15,6 +15,7 @@
 #include "Arch/AArch64.h"
 #include "Arch/ARM.h"
 #include "Arch/RISCV.h"
+#include "clang/Config/config.h"
 #include "clang/Driver/Compilation.h"
 #include "clang/Driver/Driver.h"
 #include "clang/Driver/MultilibBuilder.h"
@@ -128,7 +129,10 @@ static std::string computeClangRuntimesSysRoot(const Driver &D,
   llvm::sys::path::append(SysRootDir, "..", "lib", "clang-runtimes");
 
   if (IncludeTriple)
-    llvm::sys::path::append(SysRootDir, D.getTargetTriple());
+    llvm::sys::path::append(SysRootDir,
+                            CLANG_BAREMETAL_NORMALIZE_TARGET
+                                ? llvm::Triple::normalize(D.getTargetTriple())
+                                : D.getTargetTriple());
 
   return std::string(SysRootDir);
 }
@@ -281,7 +285,8 @@ void BareMetal::findMultilibs(const Driver &D, const llvm::Triple &Triple,
 bool BareMetal::handlesTarget(const llvm::Triple &Triple) {
   return arm::isARMEABIBareMetal(Triple) ||
          aarch64::isAArch64BareMetal(Triple) || isRISCVBareMetal(Triple) ||
-         isPPCBareMetal(Triple) || isX86BareMetal(Triple);
+         isPPCBareMetal(Triple) || isX86BareMetal(Triple) ||
+         Triple.isOSVxWorks7r2();
 }
 
 Tool *BareMetal::buildLinker() const {

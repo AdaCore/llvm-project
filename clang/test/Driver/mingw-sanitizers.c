@@ -18,3 +18,8 @@
 // ASAN-X86_64: "--whole-archive" "{{[^"]*}}libclang_rt.asan_dynamic_runtime_thunk.a" "--no-whole-archive"
 
 // RUN: %clang --target=x86_64-windows-gnu %s -### -fsanitize=vptr
+
+// RUN: %clang --target=x86_64-windows-gnu %s -### -fsanitize=fuzzer 2>&1 | FileCheck --check-prefixes=FUZZER %s
+//
+// FUZZER: "--whole-archive" "{{[^"]*}}libclang_rt.fuzzer.a" "--no-whole-archive"
+// FUZZER: "-lc++"

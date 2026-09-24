@@ -1,4 +1,5 @@
 // UNSUPPORTED: system-windows
+// UNSUPPORTED: baremetal-normalize-target
 
 // Test that when a --sysroot is not provided, driver picks the default
 // location correctly if available.
