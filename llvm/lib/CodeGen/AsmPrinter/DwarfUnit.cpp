@@ -17,6 +17,7 @@
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/APInt.h"
 #include "llvm/CodeGen/TargetRegisterInfo.h"
+#include "llvm/DebugInfo/DWARF/DWARFAttribute.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/GlobalValue.h"
@@ -236,14 +237,40 @@ void DwarfUnit::addUInt(DIEValueList &Block, dwarf::Form Form,
   addUInt(Block, (dwarf::Attribute)0, Form, Integer);
 }
 
-void DwarfUnit::addIntAsBlock(DIE &Die, dwarf::Attribute Attribute, const APInt &Val) {
-  DIEBlock *Block = new (DIEValueAllocator) DIEBlock;
-
+void DwarfUnit::addIntAsBlock(DIE &Die, dwarf::Attribute Attribute,
+                              const APInt &Val, bool Unsigned) {
   // Get the raw data form of the large APInt.
   const uint64_t *Ptr64 = Val.getRawData();
 
   int NumBytes = Val.getBitWidth() / 8; // 8 bits per byte.
   bool LittleEndian = Asm->getDataLayout().isLittleEndian();
+
+  // Normally we want to use DW_FORM_block* here.  However, for some
+  // attributes, this form may be used for an expression.  In this
+  // case, we can switch to DW_FORM_data16, but only if there are 16
+  // bytes or less, and only for DWARF 5.
+  std::optional<dwarf::Form> Form;
+  std::optional<APInt> Widened;
+  if (DWARFAttribute::mayHaveLocationExpr(Attribute)) {
+    if (NumBytes > 16 || DD->getDwarfVersion() < 5) {
+      return;
+    }
+
+    // Widen if less than 128 bits.
+    if (Val.getActiveBits() < 128) {
+      Widened = Val;
+      if (Unsigned)
+        Widened->zext(128);
+      else
+        Widened->sext(128);
+      Ptr64 = Widened->getRawData();
+    }
+
+    Form = dwarf::DW_FORM_data16;
+    NumBytes = 16;
+  }
+
+  DIEBlock *Block = new (DIEValueAllocator) DIEBlock;
 
   // Output the constant to DWARF one byte at a time.
   for (int i = 0; i < NumBytes; i++) {
@@ -255,21 +282,25 @@ void DwarfUnit::addIntAsBlock(DIE &Die, dwarf::Attribute Attribute, const APInt 
     addUInt(*Block, dwarf::DW_FORM_data1, c);
   }
 
-  addBlock(Die, Attribute, Block);
+  if (!Form.has_value()) {
+    Form = Block->BestForm();
+  }
+
+  addBlock(Die, Attribute, *Form, Block);
 }
 
-void DwarfUnit::addInt(DIE &Die, dwarf::Attribute Attribute,
-		       const APInt &Val, bool Unsigned) {
+void DwarfUnit::addInt(DIE &Die, dwarf::Attribute Attribute, const APInt &Val,
+                       bool Unsigned, std::optional<dwarf::Form> Form) {
   unsigned CIBitWidth = Val.getBitWidth();
   if (CIBitWidth <= 64) {
     if (Unsigned)
-      addUInt(Die, Attribute, std::nullopt, Val.getZExtValue());
+      addUInt(Die, Attribute, Form, Val.getZExtValue());
     else
-      addSInt(Die, Attribute, std::nullopt, Val.getSExtValue());
+      addSInt(Die, Attribute, Form, Val.getSExtValue());
     return;
   }
 
-  addIntAsBlock(Die, Attribute, Val);
+  addIntAsBlock(Die, Attribute, Val, Unsigned);
 }
 
 void DwarfUnit::addSInt(DIEValueList &Die, dwarf::Attribute Attribute,
@@ -565,7 +596,7 @@ void DwarfUnit::addConstantValue(DIE &Die, const APInt &Val, bool Unsigned) {
     return;
   }
 
-  addIntAsBlock(Die, dwarf::DW_AT_const_value, Val);
+  addIntAsBlock(Die, dwarf::DW_AT_const_value, Val, Unsigned);
 }
 
 void DwarfUnit::addLinkageName(DIE &Die, StringRef LinkageName) {
@@ -1580,8 +1611,11 @@ void DwarfUnit::constructSubrangeDIE(DIE &DW_Subrange, const DISubrangeType *SR,
   if (!Name.empty())
     addString(DW_Subrange, dwarf::DW_AT_name, Name);
 
-  if (SR->getBaseType())
-    addType(DW_Subrange, SR->getBaseType());
+  bool IsUnsigned = false;
+  if (auto *BaseType = SR->getBaseType()) {
+    addType(DW_Subrange, BaseType);
+    IsUnsigned = DD->isUnsignedDIType(BaseType);
+  }
 
   addSourceLine(DW_Subrange, SR);
 
@@ -1601,6 +1635,7 @@ void DwarfUnit::constructSubrangeDIE(DIE &DW_Subrange, const DISubrangeType *SR,
   // The LowerBound value defines the lower bounds which is typically
   // zero for C/C++. Values are 64 bit.
   int64_t DefaultLowerBound = getDefaultLowerBound();
+  dwarf::Form Form = IsUnsigned ? dwarf::DW_FORM_udata : dwarf::DW_FORM_sdata;
 
   auto AddBoundTypeEntry = [&](dwarf::Attribute Attr,
                                DISubrangeType::BoundType Bound) -> void {
@@ -1615,12 +1650,13 @@ void DwarfUnit::constructSubrangeDIE(DIE &DW_Subrange, const DISubrangeType *SR,
     } else if (auto *VE = dyn_cast_if_present<DIVariableExpression *>(Bound)) {
       addBlock(DW_Subrange, Attr, VE);
     } else if (auto *BI = dyn_cast_if_present<ConstantInt *>(Bound)) {
+      const APInt &Value = BI->getValue();
       if (Attr == dwarf::DW_AT_GNU_bias) {
-        if (BI->getSExtValue() != 0)
-          addUInt(DW_Subrange, Attr, dwarf::DW_FORM_sdata, BI->getSExtValue());
+        if (Value != 0)
+          addInt(DW_Subrange, Attr, Value, IsUnsigned, Form);
       } else if (Attr != dwarf::DW_AT_lower_bound || DefaultLowerBound == -1 ||
-                 BI->getSExtValue() != DefaultLowerBound || !ForArray)
-        addSInt(DW_Subrange, Attr, dwarf::DW_FORM_sdata, BI->getSExtValue());
+                 Value != DefaultLowerBound || !ForArray)
+        addInt(DW_Subrange, Attr, Value, IsUnsigned, Form);
     }
   };
 
