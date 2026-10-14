@@ -258,11 +258,10 @@ void DwarfUnit::addIntAsBlock(DIE &Die, dwarf::Attribute Attribute,
 
     // Widen if less than 128 bits.
     if (Val.getActiveBits() < 128) {
-      Widened = Val;
       if (Unsigned)
-        Widened->zext(128);
+        Widened = Val.zext(128);
       else
-        Widened->sext(128);
+        Widened = Val.sext(128);
       Ptr64 = Widened->getRawData();
     }
 
