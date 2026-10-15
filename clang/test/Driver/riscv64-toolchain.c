@@ -16,7 +16,7 @@
 // the configure-time CLANG_DEFAULT_RTLIB option when choosing the runtime lib
 
 // RUN: env "PATH=" %clang -### %s -fuse-ld= \
-// RUN:   --target=riscv64-unknown-elf --rtlib=platform \
+// RUN:   --target=riscv64-unknown-elf --rtlib=platform --unwindlib=none \
 // RUN:   --gcc-toolchain=%S/Inputs/basic_riscv64_tree \
 // RUN:   --sysroot=%S/Inputs/basic_riscv64_tree/riscv64-unknown-elf 2>&1 -no-pie \
 // RUN:   | FileCheck -check-prefix=C-RV64-BAREMETAL-LP64 %s
@@ -25,28 +25,28 @@
 // C-RV64-BAREMETAL-LP64: "--sysroot={{.*}}/Inputs/basic_riscv64_tree/riscv64-unknown-elf"
 // C-RV64-BAREMETAL-LP64: "-X"
 // C-RV64-BAREMETAL-LP64: "{{.*}}/Inputs/basic_riscv64_tree/riscv64-unknown-elf/lib/crt0.o"
-// C-RV64-BAREMETAL-LP64: "{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/crtbegin.o"
+// C-RV64-BAREMETAL-LP64: "{{.*}}/clang_rt.crtbegin.o"
 // C-RV64-BAREMETAL-LP64: "-L{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1"
 // C-RV64-BAREMETAL-LP64: "-L{{.*}}/Inputs/basic_riscv64_tree/riscv64-unknown-elf/lib"
-// C-RV64-BAREMETAL-LP64: "--start-group" "-lgcc" "-lc" "-lgloss" "--end-group"
-// C-RV64-BAREMETAL-LP64: "{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/crtend.o"
+// C-RV64-BAREMETAL-LP64: "--start-group" "{{.*}}/libclang_rt.builtins.a" "-lc" "-lgloss" "--end-group"
+// C-RV64-BAREMETAL-LP64: "{{.*}}/clang_rt.crtend.o"
 
 // RUN: env "PATH=" %clang -### %s -fuse-ld= \
-// RUN:   --target=riscv64-unknown-elf --rtlib=platform \
+// RUN:   --target=riscv64-unknown-elf --rtlib=platform --unwindlib=none \
 // RUN:   --sysroot= \
 // RUN:   --gcc-toolchain=%S/Inputs/basic_riscv64_tree 2>&1 \
 // RUN:   | FileCheck -check-prefix=C-RV64-BAREMETAL-NOSYSROOT-LP64 %s
 
 // C-RV64-BAREMETAL-NOSYSROOT-LP64: "{{.*}}Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/../../../../bin/riscv64-unknown-elf-ld"
 // C-RV64-BAREMETAL-NOSYSROOT-LP64: "{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/../../../../riscv64-unknown-elf/lib/crt0.o"
-// C-RV64-BAREMETAL-NOSYSROOT-LP64: "{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/crtbegin.o"
+// C-RV64-BAREMETAL-NOSYSROOT-LP64: "{{.*}}/clang_rt.crtbegin.o"
 // C-RV64-BAREMETAL-NOSYSROOT-LP64: "-L{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1"
 // C-RV64-BAREMETAL-NOSYSROOT-LP64: "-L{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/../../../../riscv64-unknown-elf/lib"
-// C-RV64-BAREMETAL-NOSYSROOT-LP64: "--start-group" "-lgcc" "-lc" "-lgloss" "--end-group"
-// C-RV64-BAREMETAL-NOSYSROOT-LP64: "{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/crtend.o"
+// C-RV64-BAREMETAL-NOSYSROOT-LP64: "--start-group" "{{.*}}/libclang_rt.builtins.a" "-lc" "-lgloss" "--end-group"
+// C-RV64-BAREMETAL-NOSYSROOT-LP64: "{{.*}}/clang_rt.crtend.o"
 
 // RUN: env "PATH=" %clangxx -### %s -fuse-ld= \
-// RUN:   --target=riscv64-unknown-elf -stdlib=libstdc++ --rtlib=platform \
+// RUN:   --target=riscv64-unknown-elf -stdlib=libstdc++ --rtlib=platform --unwindlib=none \
 // RUN:   --gcc-toolchain=%S/Inputs/basic_riscv64_tree \
 // RUN:   --sysroot=%S/Inputs/basic_riscv64_tree/riscv64-unknown-elf 2>&1 \
 // RUN:   | FileCheck -check-prefix=CXX-RV64-BAREMETAL-LP64 %s
@@ -55,14 +55,14 @@
 // CXX-RV64-BAREMETAL-LP64: "{{.*}}Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/../../../../bin/riscv64-unknown-elf-ld"
 // CXX-RV64-BAREMETAL-LP64: "--sysroot={{.*}}/Inputs/basic_riscv64_tree/riscv64-unknown-elf"
 // CXX-RV64-BAREMETAL-LP64: "{{.*}}/Inputs/basic_riscv64_tree/riscv64-unknown-elf/lib/crt0.o"
-// CXX-RV64-BAREMETAL-LP64: "{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/crtbegin.o"
+// CXX-RV64-BAREMETAL-LP64: "{{.*}}/clang_rt.crtbegin.o"
 // CXX-RV64-BAREMETAL-LP64: "-L{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1"
 // CXX-RV64-BAREMETAL-LP64: "-L{{.*}}/Inputs/basic_riscv64_tree/riscv64-unknown-elf/lib"
-// CXX-RV64-BAREMETAL-LP64: "-lstdc++" "-lm" "--start-group" "-lgcc" "-lc" "-lgloss" "--end-group"
-// CXX-RV64-BAREMETAL-LP64: "{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/crtend.o"
+// CXX-RV64-BAREMETAL-LP64: "-lstdc++" "-lm" "--start-group" "{{.*}}/libclang_rt.builtins.a" "-lc" "-lgloss" "--end-group"
+// CXX-RV64-BAREMETAL-LP64: "{{.*}}/clang_rt.crtend.o"
 
 // RUN: env "PATH=" %clangxx -### %s -fuse-ld= \
-// RUN:   --target=riscv64-unknown-elf -stdlib=libstdc++ --rtlib=platform \
+// RUN:   --target=riscv64-unknown-elf -stdlib=libstdc++ --rtlib=platform --unwindlib=none \
 // RUN:   --sysroot= \
 // RUN:   --gcc-toolchain=%S/Inputs/basic_riscv64_tree 2>&1 \
 // RUN:   | FileCheck -check-prefix=CXX-RV64-BAREMETAL-NOSYSROOT-LP64 %s
@@ -70,11 +70,11 @@
 // CXX-RV64-BAREMETAL-NOSYSROOT-LP64: "-internal-isystem" "{{.*}}Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/../../../../riscv64-unknown-elf/include/c++/8.0.1"
 // CXX-RV64-BAREMETAL-NOSYSROOT-LP64: "{{.*}}Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/../../../../bin/riscv64-unknown-elf-ld"
 // CXX-RV64-BAREMETAL-NOSYSROOT-LP64: "{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/../../../../riscv64-unknown-elf/lib/crt0.o"
-// CXX-RV64-BAREMETAL-NOSYSROOT-LP64: "{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/crtbegin.o"
+// CXX-RV64-BAREMETAL-NOSYSROOT-LP64: "{{.*}}/clang_rt.crtbegin.o"
 // CXX-RV64-BAREMETAL-NOSYSROOT-LP64: "-L{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1"
 // CXX-RV64-BAREMETAL-NOSYSROOT-LP64: "-L{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/../../../../riscv64-unknown-elf/lib"
-// CXX-RV64-BAREMETAL-NOSYSROOT-LP64: "-lstdc++" "-lm" "--start-group" "-lgcc" "-lc" "-lgloss" "--end-group"
-// CXX-RV64-BAREMETAL-NOSYSROOT-LP64: "{{.*}}/Inputs/basic_riscv64_tree/lib/gcc/riscv64-unknown-elf/8.0.1/crtend.o"
+// CXX-RV64-BAREMETAL-NOSYSROOT-LP64: "-lstdc++" "-lm" "--start-group" "{{.*}}/libclang_rt.builtins.a" "-lc" "-lgloss" "--end-group"
+// CXX-RV64-BAREMETAL-NOSYSROOT-LP64: "{{.*}}/clang_rt.crtend.o"
 
 // RUN: env "PATH=" %clang -### %s -fuse-ld= -no-pie \
 // RUN:   --target=riscv64-unknown-linux-gnu --rtlib=platform --unwindlib=platform -mabi=lp64 \
@@ -115,11 +115,11 @@
 // C-RV64IMAC-BAREMETAL-MULTI-LP64: "{{.*}}/Inputs/multilib_riscv_elf_sdk/lib/gcc/riscv64-unknown-elf/8.2.0/../../../../riscv64-unknown-elf/bin/ld"
 // C-RV64IMAC-BAREMETAL-MULTI-LP64: "-m" "elf64lriscv"
 // C-RV64IMAC-BAREMETAL-MULTI-LP64: "{{.*}}/Inputs/multilib_riscv_elf_sdk/lib/gcc/riscv64-unknown-elf/8.2.0/../../../../riscv64-unknown-elf/lib/rv64imac/lp64/crt0.o"
-// C-RV64IMAC-BAREMETAL-MULTI-LP64: "{{.*}}/Inputs/multilib_riscv_elf_sdk/lib/gcc/riscv64-unknown-elf/8.2.0/rv64imac/lp64/crtbegin.o"
+// C-RV64IMAC-BAREMETAL-MULTI-LP64: "{{.*}}/clang_rt.crtbegin.o"
 // C-RV64IMAC-BAREMETAL-MULTI-LP64: "-L{{.*}}/Inputs/multilib_riscv_elf_sdk/lib/gcc/riscv64-unknown-elf/8.2.0"
 // C-RV64IMAC-BAREMETAL-MULTI-LP64: "-L{{.*}}/Inputs/multilib_riscv_elf_sdk/lib/gcc/riscv64-unknown-elf/8.2.0/../../../../riscv64-unknown-elf/lib"
-// C-RV64IMAC-BAREMETAL-MULTI-LP64: "--start-group" "-lgcc" "-lc" "-lgloss" "--end-group"
-// C-RV64IMAC-BAREMETAL-MULTI-LP64: "{{.*}}/Inputs/multilib_riscv_elf_sdk/lib/gcc/riscv64-unknown-elf/8.2.0/rv64imac/lp64/crtend.o"
+// C-RV64IMAC-BAREMETAL-MULTI-LP64: "--start-group" "{{.*}}/libclang_rt.builtins.a" "-lc" "-lgloss" "--end-group"
+// C-RV64IMAC-BAREMETAL-MULTI-LP64: "{{.*}}/clang_rt.crtend.o"
 
 // RUN: env "PATH=" %clang -### %s -fuse-ld=ld \
 // RUN:   --target=riscv64-unknown-elf --rtlib=platform --unwindlib=platform --sysroot= \
@@ -130,16 +130,16 @@
 // C-RV64IMAFDC-BAREMETAL-MULTI-ILP64D: "{{.*}}/Inputs/multilib_riscv_elf_sdk/lib/gcc/riscv64-unknown-elf/8.2.0/../../../../riscv64-unknown-elf/bin/ld"
 // C-RV64IMAFDC-BAREMETAL-MULTI-ILP64D: "-m" "elf64lriscv"
 // C-RV64IMAFDC-BAREMETAL-MULTI-ILP64D: "{{.*}}/Inputs/multilib_riscv_elf_sdk/lib/gcc/riscv64-unknown-elf/8.2.0/../../../../riscv64-unknown-elf/lib/rv64imafdc/lp64d/crt0.o"
-// C-RV64IMAFDC-BAREMETAL-MULTI-ILP64D: "{{.*}}/Inputs/multilib_riscv_elf_sdk/lib/gcc/riscv64-unknown-elf/8.2.0/rv64imafdc/lp64d/crtbegin.o"
+// C-RV64IMAFDC-BAREMETAL-MULTI-ILP64D: "{{.*}}/clang_rt.crtbegin.o"
 // C-RV64IMAFDC-BAREMETAL-MULTI-ILP64D: "-L{{.*}}/Inputs/multilib_riscv_elf_sdk/lib/gcc/riscv64-unknown-elf/8.2.0"
 // C-RV64IMAFDC-BAREMETAL-MULTI-ILP64D: "-L{{.*}}/Inputs/multilib_riscv_elf_sdk/lib/gcc/riscv64-unknown-elf/8.2.0/../../../../riscv64-unknown-elf/lib"
-// C-RV64IMAFDC-BAREMETAL-MULTI-ILP64D: "--start-group" "-lgcc" "-lc" "-lgloss" "--end-group"
-// C-RV64IMAFDC-BAREMETAL-MULTI-ILP64D: "{{.*}}/Inputs/multilib_riscv_elf_sdk/lib/gcc/riscv64-unknown-elf/8.2.0/rv64imafdc/lp64d/crtend.o"
+// C-RV64IMAFDC-BAREMETAL-MULTI-ILP64D: "--start-group" "{{.*}}/libclang_rt.builtins.a" "-lc" "-lgloss" "--end-group"
+// C-RV64IMAFDC-BAREMETAL-MULTI-ILP64D: "{{.*}}/clang_rt.crtend.o"
 
 // Check that --rtlib can be used to override the used runtime library
 // RUN: %clang -### %s \
 // RUN:   --gcc-toolchain=%S/Inputs/multilib_riscv_elf_sdk \
-// RUN:   --target=riscv64-unknown-elf --rtlib=libgcc --unwindlib=libgcc 2>&1 \
+// RUN:   --target=riscv64-unknown-elf --rtlib=libgcc --unwindlib=none 2>&1 \
 // RUN:   | FileCheck -check-prefix=C-RV64-RTLIB-LIBGCC-LP64 %s
 // C-RV64-RTLIB-LIBGCC-LP64: "{{.*}}crt0.o"
 // C-RV64-RTLIB-LIBGCC-LP64: "{{.*}}crtbegin.o"
@@ -148,7 +148,7 @@
 
 // RUN: %clang -### %s \
 // RUN:   --gcc-toolchain=%S/Inputs/multilib_riscv_elf_sdk \
-// RUN:   --target=riscv64-unknown-elf --rtlib=compiler-rt --unwindlib=compiler-rt 2>&1 \
+// RUN:   --target=riscv64-unknown-elf --rtlib=compiler-rt --unwindlib=none 2>&1 \
 // RUN:   | FileCheck -check-prefix=C-RV64-RTLIB-COMPILERRT-LP64 %s
 // C-RV64-RTLIB-COMPILERRT-LP64: "{{.*}}crt0.o"
 // C-RV64-RTLIB-COMPILERRT-LP64: "{{.*}}clang_rt.crtbegin.o"
